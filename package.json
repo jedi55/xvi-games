@@ -1,0 +1,22 @@
+{
+  "name": "the-sovereign-cue",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@paystack/inline-js": "^2.22.8",
+    "@supabase/supabase-js": "^2.100.1",
+    "react-datepicker": "^9.1.0",
+    "resend": "^6.10.0",
+    "twilio": "^5.13.1"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.42.0",
+    "vite": "^6.3.2"
+  }
+}

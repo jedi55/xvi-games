@@ -1,0 +1,94 @@
+- generic [ref=e2]:
+  - banner [ref=e361]:
+    - navigation [ref=e362]:
+      - link "The Sovereign Cue" [ref=e363] [cursor=pointer]:
+        - /url: "#/"
+      - generic [ref=e364]:
+        - link "Home" [ref=e365] [cursor=pointer]:
+          - /url: "#/"
+        - link "Tables" [ref=e366] [cursor=pointer]:
+          - /url: "#/tables"
+      - generic [ref=e367]:
+        - link "Login" [ref=e368] [cursor=pointer]:
+          - /url: "#/login"
+        - link "Book Now" [ref=e369] [cursor=pointer]:
+          - /url: "#/tables"
+  - main [ref=e371]:
+    - generic [ref=e373]:
+      - generic [ref=e374]:
+        - generic [ref=e375]:
+          - generic [ref=e377]: check
+          - generic [ref=e378]: Table & Type
+        - generic [ref=e380]:
+          - generic [ref=e382]: check
+          - generic [ref=e383]: Date & Time
+        - generic [ref=e385]:
+          - generic [ref=e386]: "3"
+          - generic [ref=e387]: Your Details
+      - generic [ref=e389]:
+        - generic [ref=e390]:
+          - paragraph [ref=e392]: Step 3 of 3
+          - heading "Your Details" [level=2] [ref=e393]
+        - generic [ref=e394]:
+          - generic [ref=e395]:
+            - generic [ref=e396]:
+              - generic [ref=e397]: Full Name
+              - textbox "Enter your full name" [ref=e398]
+            - generic [ref=e399]:
+              - generic [ref=e400]: Phone Number
+              - textbox "+234 800 000 0000" [ref=e401]
+            - generic [ref=e402]:
+              - generic [ref=e403]: Email Address
+              - textbox "you@example.com" [ref=e404]
+          - generic [ref=e405]:
+            - generic [ref=e406]:
+              - generic [ref=e407]: receipt_long
+              - heading "Order Summary" [level=3] [ref=e408]
+            - generic [ref=e409]:
+              - generic [ref=e410]:
+                - generic [ref=e411]: Table
+                - generic [ref=e412]: Table 1
+              - generic [ref=e413]:
+                - generic [ref=e414]: Date
+                - generic [ref=e415]: Saturday, April 4, 2026
+              - generic [ref=e416]:
+                - generic [ref=e417]: Time
+                - generic [ref=e418]: 10:00 AM
+              - generic [ref=e419]:
+                - generic [ref=e420]: Duration
+                - generic [ref=e421]: 1 Hour
+            - generic [ref=e422]:
+              - generic [ref=e423]: Total
+              - generic [ref=e424]: ₦1,500
+        - generic [ref=e425]:
+          - button "arrow_back Back" [ref=e426] [cursor=pointer]:
+            - generic [ref=e427]: arrow_back
+            - text: Back
+          - button "check_circle Confirm Booking" [ref=e428] [cursor=pointer]:
+            - generic [ref=e429]: check_circle
+            - text: Confirm Booking
+  - contentinfo [ref=e430]:
+    - generic [ref=e431]:
+      - generic [ref=e432]:
+        - generic [ref=e433]: The Sovereign Cue
+        - paragraph [ref=e434]: Elevated Reservations
+      - generic [ref=e435]:
+        - generic [ref=e436]:
+          - heading "Opening Hours" [level=4] [ref=e437]
+          - paragraph [ref=e438]: Monday – Sunday
+          - paragraph [ref=e439]: 10:00 AM – 11:00 PM
+        - generic [ref=e440]:
+          - heading "Contact" [level=4] [ref=e441]
+          - paragraph [ref=e442]: +234 812 345 6789
+          - paragraph [ref=e443]: info@thesovereigncue.com
+        - generic [ref=e444]:
+          - heading "Address" [level=4] [ref=e445]
+          - paragraph [ref=e446]: 12 Victoria Island Drive
+          - paragraph [ref=e447]: Lagos, Nigeria
+      - generic [ref=e448]:
+        - generic [ref=e449]: © 2026 The Sovereign Cue. All Rights Reserved.
+        - generic [ref=e450]:
+          - link "Privacy Policy" [ref=e451] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms of Service" [ref=e452] [cursor=pointer]:
+            - /url: "#"

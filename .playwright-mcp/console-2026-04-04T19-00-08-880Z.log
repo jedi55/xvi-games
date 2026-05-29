@@ -1,0 +1,53 @@
+[    6369ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  442026ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775329650600:102
+[  442421ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  442941ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://paystack.com/public/css/button.min.css:0
+[  487848ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775329650600:102
+[  491240ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  501582ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  532098ms] TypeError: router.afterEach is not a function
+    at http://localhost:5173/src/main.js?t=1775329740760:104:8
+[  556432ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775329764992:110
+[  556836ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0

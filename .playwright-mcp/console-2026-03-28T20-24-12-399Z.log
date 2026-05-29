@@ -1,0 +1,2 @@
+[    2092ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://paystack.com/public/css/button.min.css:0
+[    2146ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0

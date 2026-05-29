@@ -1,0 +1,59 @@
+[     946ms] TypeError: router.notFound is not a function
+    at http://localhost:5173/src/main.js:142:8
+[    6239ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[   10462ms] TypeError: router.notFound is not a function
+    at http://localhost:5173/src/main.js:142:8
+[   10664ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://paystack.com/public/css/button.min.css:0
+[   15987ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[   77622ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775688135745:148
+[   77628ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[   77836ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[  109017ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775688167334:148
+[  109022ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[  109232ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[  109248ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://paystack.com/public/css/button.min.css:0
+[  118464ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775688176608:148
+[  118469ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0
+[  118690ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/login:0

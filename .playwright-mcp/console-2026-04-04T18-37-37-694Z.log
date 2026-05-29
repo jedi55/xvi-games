@@ -1,0 +1,7 @@
+[   19367ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[   32611ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://eu-assets.i.posthog.com/array/phc_LZ6VShmQYuGQM536EGOroVpmYKcpeL7U4bbtN3govL0/config?ip=0&_=1775327865910&ver=1.345.2:0
+[   36563ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://eu.i.posthog.com/e/?ip=0&_=1775327865958&ver=1.345.2&compression=gzip-js:0
+[   56161ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://eu.i.posthog.com/e/?retry_count=1&ip=0&_=1775327900264&ver=1.345.2:0
+[  135397ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  179230ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  234215ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0

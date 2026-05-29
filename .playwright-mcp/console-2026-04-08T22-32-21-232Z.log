@@ -1,0 +1,80 @@
+[     -99ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5175/src/main.js:130
+[    4740ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[    4740ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   12109ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5175/src/main.js:130
+[   12119ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   12119ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   12230ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   12230ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   17825ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5175/src/main.js:130
+[   17829ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   17829ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   18062ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   18062ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   46807ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:5175/@vite/client:963
+[   46823ms] [ERROR] WebSocket connection to 'ws://localhost:5175/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:5175/@vite/client:1034
+[   48091ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5175/src/main.js:130
+[   48096ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   48096ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   48333ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[   48333ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[  426062ms] TypeError: router.notFound is not a function
+    at http://localhost:5175/src/main.js?t=1775687965931:142:8
+[  425913ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0
+[  425913ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5175/#/signup:0

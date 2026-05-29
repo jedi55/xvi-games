@@ -1,0 +1,81 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link "The Sovereign Cue" [ref=e5] [cursor=pointer]:
+        - /url: "#/"
+      - generic [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: "#/"
+        - link "Tables" [ref=e8] [cursor=pointer]:
+          - /url: "#/tables"
+        - link "About" [ref=e9] [cursor=pointer]:
+          - /url: "#about"
+      - generic [ref=e10]:
+        - button "Toggle theme" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: dark_mode
+          - generic: Switch to Light Mode
+        - link "Login" [ref=e13] [cursor=pointer]:
+          - /url: "#/login"
+        - link "Book Now" [ref=e14] [cursor=pointer]:
+          - /url: "#/tables"
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e19]: check_circle
+      - heading "Booking Confirmed!" [level=1] [ref=e20]
+      - paragraph [ref=e21]: Your table is reserved
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: Booking Reference
+          - generic [ref=e25]: SC-0001
+        - generic [ref=e26]:
+          - generic [ref=e27]: Table
+          - generic [ref=e28]: Table 1
+        - generic [ref=e29]:
+          - generic [ref=e30]: Date
+          - generic [ref=e31]: Monday, April 6, 2026
+        - generic [ref=e32]:
+          - generic [ref=e33]: Time
+          - generic [ref=e34]: 10:00 AM
+        - generic [ref=e35]:
+          - generic [ref=e36]: Duration
+          - generic [ref=e37]: 2 Hours
+        - generic [ref=e38]:
+          - generic [ref=e39]: Total Paid
+          - generic [ref=e40]: ₦3,000
+      - generic [ref=e41]:
+        - generic [ref=e42]: notifications_active
+        - paragraph [ref=e43]: A confirmation has been sent to your phone and email
+      - generic [ref=e44]:
+        - link "add_circle Book Another Table" [ref=e45] [cursor=pointer]:
+          - /url: "#/booking"
+          - generic [ref=e46]: add_circle
+          - text: Book Another Table
+        - link "sports View Our Tables" [ref=e47] [cursor=pointer]:
+          - /url: "#/"
+          - generic [ref=e48]: sports
+          - text: View Our Tables
+  - contentinfo [ref=e49]:
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e52]: The Sovereign Cue
+        - paragraph [ref=e53]: Elevated Reservations
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - heading "Opening Hours" [level=4] [ref=e56]
+          - paragraph [ref=e57]: Monday – Sunday
+          - paragraph [ref=e58]: 10:00 AM – 11:00 PM
+        - generic [ref=e59]:
+          - heading "Contact" [level=4] [ref=e60]
+          - paragraph [ref=e61]: +234 812 345 6789
+          - paragraph [ref=e62]: info@thesovereigncue.com
+        - generic [ref=e63]:
+          - heading "Location" [level=4] [ref=e64]
+          - paragraph [ref=e65]: 12 Victoria Island Drive
+          - paragraph [ref=e66]: Lagos, Nigeria
+      - generic [ref=e67]:
+        - generic [ref=e68]: © 2026 The Sovereign Cue. All Rights Reserved.
+        - generic [ref=e69]:
+          - link "Privacy Policy" [ref=e70] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms of Service" [ref=e71] [cursor=pointer]:
+            - /url: "#"

@@ -1,0 +1,134 @@
+- generic [ref=e292]:
+  - complementary [ref=e293]:
+    - generic [ref=e294]: XVI
+    - generic [ref=e295]:
+      - generic [ref=e296]: AD
+      - generic [ref=e297]:
+        - paragraph [ref=e298]: Club Admin
+        - paragraph [ref=e299]: XVI
+    - navigation [ref=e300]:
+      - link "dashboard Overview" [ref=e301] [cursor=pointer]:
+        - /url: "#/admin"
+        - generic [ref=e302]: dashboard
+        - generic [ref=e303]: Overview
+      - link "event_seat Bookings" [ref=e304] [cursor=pointer]:
+        - /url: "#/admin/bookings"
+        - generic [ref=e305]: event_seat
+        - generic [ref=e306]: Bookings
+      - link "sports Tables" [ref=e307] [cursor=pointer]:
+        - /url: "#/admin/tables"
+        - generic [ref=e308]: sports
+        - generic [ref=e309]: Tables
+      - link "payments Pricing" [ref=e310] [cursor=pointer]:
+        - /url: "#/admin/pricing"
+        - generic [ref=e311]: payments
+        - generic [ref=e312]: Pricing
+      - link "New Booking" [ref=e314] [cursor=pointer]:
+        - /url: "#/admin/bookings"
+      - link "logout Logout" [ref=e316] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e317]: logout
+        - generic [ref=e318]: Logout
+  - main [ref=e319]:
+    - generic [ref=e320]:
+      - paragraph [ref=e321]: MANAGE
+      - heading "All Bookings" [level=1] [ref=e322]
+    - generic [ref=e323]:
+      - generic [ref=e324]:
+        - generic [ref=e325]:
+          - generic [ref=e326]: search
+          - textbox "Search customer or ref..." [ref=e327]
+        - combobox [ref=e329]:
+          - option "All Statuses" [selected]
+          - option "Pending"
+          - option "Confirmed"
+          - option "Completed"
+          - option "Cancelled"
+      - table [ref=e331]:
+        - rowgroup [ref=e332]:
+          - row "Ref Code Customer Phone Table Date Time Amount Status Actions" [ref=e333]:
+            - columnheader "Ref Code" [ref=e334]
+            - columnheader "Customer" [ref=e335]
+            - columnheader "Phone" [ref=e336]
+            - columnheader "Table" [ref=e337]
+            - columnheader "Date" [ref=e338]
+            - columnheader "Time" [ref=e339]
+            - columnheader "Amount" [ref=e340]
+            - columnheader "Status" [ref=e341]
+            - columnheader "Actions" [ref=e342]
+        - rowgroup [ref=e343]:
+          - row "#SC-0021 AJ Arthur Jenkins +234 800 000 0122 Table 1 Saturday, March 28 18:00 - 20:00 ₦3,500 confirmed cancel" [ref=e344]:
+            - cell "#SC-0021" [ref=e345]
+            - cell "AJ Arthur Jenkins" [ref=e346]:
+              - generic [ref=e347]:
+                - generic [ref=e348]: AJ
+                - generic [ref=e349]: Arthur Jenkins
+            - cell "+234 800 000 0122" [ref=e350]
+            - cell "Table 1" [ref=e351]:
+              - generic [ref=e352]: Table 1
+            - cell "Saturday, March 28" [ref=e353]
+            - cell "18:00 - 20:00" [ref=e354]
+            - cell "₦3,500" [ref=e355]
+            - cell "confirmed" [ref=e356]:
+              - generic [ref=e359]: confirmed
+            - cell "cancel" [ref=e360]:
+              - button "cancel" [ref=e362] [cursor=pointer]:
+                - generic [ref=e363]: cancel
+          - row "#SC-0025 EM Elena Moretti +234 800 000 0451 Table 2 Saturday, March 28 20:30 - 22:30 ₦3,500 pending check_circle cancel" [ref=e364]:
+            - cell "#SC-0025" [ref=e365]
+            - cell "EM Elena Moretti" [ref=e366]:
+              - generic [ref=e367]:
+                - generic [ref=e368]: EM
+                - generic [ref=e369]: Elena Moretti
+            - cell "+234 800 000 0451" [ref=e370]
+            - cell "Table 2" [ref=e371]:
+              - generic [ref=e372]: Table 2
+            - cell "Saturday, March 28" [ref=e373]
+            - cell "20:30 - 22:30" [ref=e374]
+            - cell "₦3,500" [ref=e375]
+            - cell "pending" [ref=e376]:
+              - generic [ref=e379]: pending
+            - cell "check_circle cancel" [ref=e380]:
+              - generic [ref=e381]:
+                - button "check_circle" [ref=e382] [cursor=pointer]:
+                  - generic [ref=e383]: check_circle
+                - button "cancel" [ref=e384] [cursor=pointer]:
+                  - generic [ref=e385]: cancel
+          - row "#SC-0018 DB David Blackwell +234 800 000 0882 Table 2 Friday, March 27 17:00 - 19:00 ₦3,500 completed" [ref=e386]:
+            - cell "#SC-0018" [ref=e387]
+            - cell "DB David Blackwell" [ref=e388]:
+              - generic [ref=e389]:
+                - generic [ref=e390]: DB
+                - generic [ref=e391]: David Blackwell
+            - cell "+234 800 000 0882" [ref=e392]
+            - cell "Table 2" [ref=e393]:
+              - generic [ref=e394]: Table 2
+            - cell "Friday, March 27" [ref=e395]
+            - cell "17:00 - 19:00" [ref=e396]
+            - cell "₦3,500" [ref=e397]
+            - cell "completed" [ref=e398]:
+              - generic [ref=e401]: completed
+            - cell [ref=e402]
+          - row "#SC-0033 MS Marcus Sterling +234 800 000 0773 Table 3 Thursday, March 26 21:00 - 23:00 ₦3,500 cancelled" [ref=e403]:
+            - cell "#SC-0033" [ref=e404]
+            - cell "MS Marcus Sterling" [ref=e405]:
+              - generic [ref=e406]:
+                - generic [ref=e407]: MS
+                - generic [ref=e408]: Marcus Sterling
+            - cell "+234 800 000 0773" [ref=e409]
+            - cell "Table 3" [ref=e410]:
+              - generic [ref=e411]: Table 3
+            - cell "Thursday, March 26" [ref=e412]
+            - cell "21:00 - 23:00" [ref=e413]
+            - cell "₦3,500" [ref=e414]
+            - cell "cancelled" [ref=e415]:
+              - generic [ref=e418]: cancelled
+            - cell [ref=e419]
+      - generic [ref=e420]:
+        - generic [ref=e421]: Showing 1-4 of 4 bookings
+        - generic [ref=e422]:
+          - button "chevron_left" [disabled] [ref=e423] [cursor=pointer]:
+            - generic [ref=e424]: chevron_left
+          - button "1" [ref=e425] [cursor=pointer]
+          - button "chevron_right" [disabled] [ref=e426] [cursor=pointer]:
+            - generic [ref=e427]: chevron_right

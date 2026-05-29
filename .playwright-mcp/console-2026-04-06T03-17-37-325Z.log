@@ -1,0 +1,78 @@
+[     125ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775445049014:110
+[     882ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://paystack.com/public/css/button.min.css:0
+[  356278ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775445812413:110
+[  417286ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:5173/src/pages/booking.js?t=1775445874191:0
+[  437317ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775445894344:110
+[  936120ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775446393128:110
+[ 1024255ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775446481184:110
+[ 1024487ms] [ERROR] Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE.NotSameOrigin @ https://paystack.com/public/css/button.min.css:0

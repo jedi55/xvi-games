@@ -1,0 +1,56 @@
+[     177ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/#/admin:0
+[   13213ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/reservations?select=id&date=eq.2026-04-08:0
+[   13214ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=status:0
+[   13214ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/reservations?select=*%2Ctables%28name%29%2Cprofiles%28full_name%2Cphone%29&order=created_at.desc&offset=0&limit=20:0
+[   13215ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[   13215ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/payments?select=amount&status=eq.success&paid_at=gte.2026-04-08T00%3A00%3A00:0
+[   33586ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/reservations?select=*%2Ctables%28name%29%2Cprofiles%28full_name%2Cphone%29&order=created_at.desc&offset=0&limit=10:0
+[   36168ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[   47883ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/pricing?select=*&order=type%2C+amount.asc:0
+[   55439ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  162802ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775683042594:112
+[  163557ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0
+[  187791ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775683068111:112
+[  189219ms] [LOG] 
+🎱 101 GAMES — Snooker Table Reservation System
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Routes:
+  #/           → Home
+  #/tables     → Tables Overview
+  #/login      → Auth
+  #/booking/:id → Book a Table
+  #/history    → Reservation History
+  #/admin      → Admin Dashboard
+  #/admin/bookings → Manage Bookings
+  #/admin/tables   → Manage Tables
+  #/admin/pricing  → Manage Pricing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ @ http://localhost:5173/src/main.js?t=1775683069544:112

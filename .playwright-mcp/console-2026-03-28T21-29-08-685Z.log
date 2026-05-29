@@ -1,0 +1,5 @@
+[     560ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/reservations?select=id&date=eq.2026-03-28:0
+[     562ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/payments?select=amount&status=eq.success&paid_at=gte.2026-03-28T00%3A00%3A00:0
+[     562ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=status:0
+[     562ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/reservations?select=*%2Ctables%28name%29%2Cprofiles%28full_name%2Cphone%29&order=created_at.desc&offset=0&limit=5:0
+[     791ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://your-project.supabase.co/rest/v1/tables?select=*&order=id.asc:0

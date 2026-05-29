@@ -1,0 +1,91 @@
+- generic [ref=e428]:
+  - complementary [ref=e429]:
+    - generic [ref=e430]: XVI
+    - generic [ref=e431]:
+      - generic [ref=e432]: AD
+      - generic [ref=e433]:
+        - paragraph [ref=e434]: Club Admin
+        - paragraph [ref=e435]: XVI
+    - navigation [ref=e436]:
+      - link "dashboard Overview" [ref=e437] [cursor=pointer]:
+        - /url: "#/admin"
+        - generic [ref=e438]: dashboard
+        - generic [ref=e439]: Overview
+      - link "event_seat Bookings" [ref=e440] [cursor=pointer]:
+        - /url: "#/admin/bookings"
+        - generic [ref=e441]: event_seat
+        - generic [ref=e442]: Bookings
+      - link "sports Tables" [ref=e443] [cursor=pointer]:
+        - /url: "#/admin/tables"
+        - generic [ref=e444]: sports
+        - generic [ref=e445]: Tables
+      - link "payments Pricing" [ref=e446] [cursor=pointer]:
+        - /url: "#/admin/pricing"
+        - generic [ref=e447]: payments
+        - generic [ref=e448]: Pricing
+      - link "New Booking" [ref=e450] [cursor=pointer]:
+        - /url: "#/admin/bookings"
+      - link "logout Logout" [ref=e452] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e453]: logout
+        - generic [ref=e454]: Logout
+  - main [ref=e455]:
+    - generic [ref=e456]:
+      - paragraph [ref=e457]: MANAGE
+      - heading "Table Management" [level=1] [ref=e458]
+      - paragraph [ref=e459]: Control table availability and maintenance status.
+    - generic [ref=e460]:
+      - generic [ref=e463]:
+        - generic [ref=e464]:
+          - generic [ref=e465]:
+            - heading "Table 1" [level=3] [ref=e466]
+            - paragraph [ref=e467]: Premium full-size snooker table with tournament-grade cloth
+          - generic [ref=e470]: available
+        - generic [ref=e471]:
+          - generic [ref=e472]: CHANGE STATUS
+          - generic [ref=e473]:
+            - button "Available" [ref=e474] [cursor=pointer]
+            - button "Occupied" [ref=e475] [cursor=pointer]
+            - button "Maintenance" [ref=e476] [cursor=pointer]
+        - generic [ref=e478]:
+          - text: Features
+          - generic [ref=e479]:
+            - generic "Full-size" [ref=e480]: straighten
+            - generic "Lighting" [ref=e481]: lightbulb
+            - generic "Scoreboard" [ref=e482]: scoreboard
+      - generic [ref=e485]:
+        - generic [ref=e486]:
+          - generic [ref=e487]:
+            - heading "Table 2" [level=3] [ref=e488]
+            - paragraph [ref=e489]: Professional snooker table ideal for competitive play
+          - generic [ref=e492]: occupied
+        - generic [ref=e493]:
+          - generic [ref=e494]: CHANGE STATUS
+          - generic [ref=e495]:
+            - button "Available" [ref=e496] [cursor=pointer]
+            - button "Occupied" [ref=e497] [cursor=pointer]
+            - button "Maintenance" [ref=e498] [cursor=pointer]
+        - generic [ref=e500]:
+          - text: Features
+          - generic [ref=e501]:
+            - generic "Full-size" [ref=e502]: straighten
+            - generic "Lighting" [ref=e503]: lightbulb
+            - generic "Scoreboard" [ref=e504]: scoreboard
+      - generic [ref=e507]:
+        - generic [ref=e508]:
+          - generic [ref=e509]:
+            - heading "Table 3" [level=3] [ref=e510]
+            - paragraph [ref=e511]: Standard snooker table perfect for casual games
+          - generic [ref=e514]: maintenance
+        - generic [ref=e515]:
+          - generic [ref=e516]: CHANGE STATUS
+          - generic [ref=e517]:
+            - button "Available" [ref=e518] [cursor=pointer]
+            - button "Occupied" [ref=e519] [cursor=pointer]
+            - button "Maintenance" [ref=e520] [cursor=pointer]
+        - generic [ref=e522]:
+          - text: Features
+          - generic [ref=e523]:
+            - generic "Full-size" [ref=e524]: straighten
+            - generic "Lighting" [ref=e525]: lightbulb
+            - generic "Scoreboard" [ref=e526]: scoreboard

@@ -1,0 +1,82 @@
+- generic [ref=e2]:
+  - banner [ref=e203]:
+    - navigation [ref=e204]:
+      - link "The Sovereign Cue" [ref=e205] [cursor=pointer]:
+        - /url: "#/"
+      - generic [ref=e206]:
+        - link "Home" [ref=e207] [cursor=pointer]:
+          - /url: "#/"
+        - link "Tables" [ref=e208] [cursor=pointer]:
+          - /url: "#/tables"
+      - generic [ref=e209]:
+        - link "Login" [ref=e210] [cursor=pointer]:
+          - /url: "#/login"
+        - link "Book Now" [ref=e211] [cursor=pointer]:
+          - /url: "#/tables"
+  - main [ref=e213]:
+    - generic [ref=e215]:
+      - generic [ref=e216]:
+        - generic [ref=e217]:
+          - generic [ref=e219]: check
+          - generic [ref=e220]: Table & Type
+        - generic [ref=e222]:
+          - generic [ref=e223]: "2"
+          - generic [ref=e224]: Date & Time
+        - generic [ref=e226]:
+          - generic [ref=e227]: "3"
+          - generic [ref=e228]: Your Details
+      - generic [ref=e230]:
+        - generic [ref=e231]:
+          - paragraph [ref=e233]: Step 2 of 3
+          - heading "Pick Date & Time" [level=2] [ref=e234]
+        - generic [ref=e235]:
+          - generic [ref=e236]: Select Date
+          - textbox [ref=e237]: 2026-04-04
+        - generic [ref=e238]:
+          - generic [ref=e239]: Select Time Slot
+          - generic [ref=e240]:
+            - button "10:00 AM" [ref=e241] [cursor=pointer]
+            - button "11:00 AM" [ref=e242] [cursor=pointer]
+            - button "12:00 PM" [ref=e243] [cursor=pointer]
+            - button "1:00 PM" [disabled] [ref=e244]
+            - button "2:00 PM" [ref=e245] [cursor=pointer]
+            - button "3:00 PM" [ref=e246] [cursor=pointer]
+            - button "4:00 PM" [ref=e247] [cursor=pointer]
+            - button "5:00 PM" [disabled] [ref=e248]
+            - button "6:00 PM" [ref=e249] [cursor=pointer]
+            - button "7:00 PM" [ref=e250] [cursor=pointer]
+            - button "8:00 PM" [ref=e251] [cursor=pointer]
+            - button "9:00 PM" [disabled] [ref=e252]
+            - button "10:00 PM" [ref=e253] [cursor=pointer]
+        - generic [ref=e254]:
+          - button "arrow_back Back" [ref=e255] [cursor=pointer]:
+            - generic [ref=e256]: arrow_back
+            - text: Back
+          - button "Next arrow_forward" [disabled] [ref=e257]:
+            - text: Next
+            - generic [ref=e258]: arrow_forward
+  - contentinfo [ref=e259]:
+    - generic [ref=e260]:
+      - generic [ref=e261]:
+        - generic [ref=e262]: The Sovereign Cue
+        - paragraph [ref=e263]: Elevated Reservations
+      - generic [ref=e264]:
+        - generic [ref=e265]:
+          - heading "Opening Hours" [level=4] [ref=e266]
+          - paragraph [ref=e267]: Monday – Sunday
+          - paragraph [ref=e268]: 10:00 AM – 11:00 PM
+        - generic [ref=e269]:
+          - heading "Contact" [level=4] [ref=e270]
+          - paragraph [ref=e271]: +234 812 345 6789
+          - paragraph [ref=e272]: info@thesovereigncue.com
+        - generic [ref=e273]:
+          - heading "Address" [level=4] [ref=e274]
+          - paragraph [ref=e275]: 12 Victoria Island Drive
+          - paragraph [ref=e276]: Lagos, Nigeria
+      - generic [ref=e277]:
+        - generic [ref=e278]: © 2026 The Sovereign Cue. All Rights Reserved.
+        - generic [ref=e279]:
+          - link "Privacy Policy" [ref=e280] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms of Service" [ref=e281] [cursor=pointer]:
+            - /url: "#"

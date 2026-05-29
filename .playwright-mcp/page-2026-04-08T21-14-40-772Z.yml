@@ -1,0 +1,6 @@
+- generic [ref=e158]:
+  - generic [ref=e159]: XVI
+  - heading "Admin Access" [level=2] [ref=e160]
+  - generic [ref=e161]:
+    - textbox "Enter Admin Password" [ref=e162]
+    - button "Login" [ref=e163] [cursor=pointer]

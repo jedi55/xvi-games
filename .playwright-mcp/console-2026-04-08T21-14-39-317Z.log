@@ -1,0 +1,8 @@
+[     -19ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:5175/src/pages/payment.js?t=1775583484920:0
+[     -13ms] [ERROR] WebSocket connection to 'ws://localhost:5175/?token=o3Yj2X43o8db' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:5175/@vite/client:801
+[     412ms] [ERROR] WebSocket connection to 'ws://localhost:5173/?token=o3Yj2X43o8db' failed: Error during WebSocket handshake: Unexpected response code: 400 @ http://localhost:5175/@vite/client:814
+[     412ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:5175/ <--[HTTP]--> localhost:5173/ (server)
+  (browser) localhost:5175/ <--[WebSocket (failing)]--> localhost:5173/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:5175/@vite/client:829

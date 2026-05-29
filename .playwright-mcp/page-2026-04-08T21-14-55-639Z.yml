@@ -1,0 +1,130 @@
+- generic [ref=e164]:
+  - complementary [ref=e165]:
+    - generic [ref=e166]: XVI
+    - generic [ref=e167]:
+      - generic [ref=e168]: AD
+      - generic [ref=e169]:
+        - paragraph [ref=e170]: Club Admin
+        - paragraph [ref=e171]: XVI
+    - navigation [ref=e172]:
+      - link "dashboard Overview" [ref=e173] [cursor=pointer]:
+        - /url: "#/admin"
+        - generic [ref=e174]: dashboard
+        - generic [ref=e175]: Overview
+      - link "event_seat Bookings" [ref=e176] [cursor=pointer]:
+        - /url: "#/admin/bookings"
+        - generic [ref=e177]: event_seat
+        - generic [ref=e178]: Bookings
+      - link "sports Tables" [ref=e179] [cursor=pointer]:
+        - /url: "#/admin/tables"
+        - generic [ref=e180]: sports
+        - generic [ref=e181]: Tables
+      - link "payments Pricing" [ref=e182] [cursor=pointer]:
+        - /url: "#/admin/pricing"
+        - generic [ref=e183]: payments
+        - generic [ref=e184]: Pricing
+      - link "New Booking" [ref=e186] [cursor=pointer]:
+        - /url: "#/admin/bookings"
+      - link "logout Logout" [ref=e188] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e189]: logout
+        - generic [ref=e190]: Logout
+  - main [ref=e191]:
+    - generic [ref=e192]:
+      - generic [ref=e193]:
+        - paragraph [ref=e194]: CLUB MANAGEMENT
+        - heading "Admin Dashboard" [level=1] [ref=e195]
+      - button "lock Lock Admin" [ref=e197] [cursor=pointer]:
+        - generic [ref=e198]: lock
+        - text: Lock Admin
+    - generic [ref=e199]:
+      - generic [ref=e200]:
+        - paragraph [ref=e201]: Total Bookings Today
+        - paragraph [ref=e202]: "24"
+      - generic [ref=e203]:
+        - paragraph [ref=e204]: Revenue Today
+        - paragraph [ref=e205]: ₦84,200
+      - generic [ref=e206]:
+        - paragraph [ref=e207]: Tables In Use
+        - paragraph [ref=e208]: "2"
+      - generic [ref=e209]:
+        - paragraph [ref=e210]: Available Tables
+        - paragraph [ref=e211]: "1"
+    - generic [ref=e212]:
+      - generic [ref=e213]:
+        - generic [ref=e214]:
+          - button "All" [ref=e215] [cursor=pointer]
+          - button "Confirmed" [ref=e216] [cursor=pointer]
+          - button "Cancelled" [ref=e217] [cursor=pointer]
+          - button "Completed" [ref=e218] [cursor=pointer]
+        - generic [ref=e219]:
+          - generic [ref=e220]: search
+          - textbox "Search customer..." [ref=e221]
+      - table [ref=e223]:
+        - rowgroup [ref=e224]:
+          - row "Ref Code Customer Phone Table Time Type Status Action" [ref=e225]:
+            - columnheader "Ref Code" [ref=e226]
+            - columnheader "Customer" [ref=e227]
+            - columnheader "Phone" [ref=e228]
+            - columnheader "Table" [ref=e229]
+            - columnheader "Time" [ref=e230]
+            - columnheader "Type" [ref=e231]
+            - columnheader "Status" [ref=e232]
+            - columnheader "Action" [ref=e233]
+        - rowgroup [ref=e234]:
+          - row "#SC-0021 Arthur Jenkins +234 800 000 0122 Table 1 18:00 - 20:00 Snooker confirmed cancel Cancel" [ref=e235]:
+            - cell "#SC-0021" [ref=e236]
+            - cell "Arthur Jenkins" [ref=e237]
+            - cell "+234 800 000 0122" [ref=e238]
+            - cell "Table 1" [ref=e239]:
+              - generic [ref=e240]: Table 1
+            - cell "18:00 - 20:00" [ref=e241]
+            - cell "Snooker" [ref=e242]
+            - cell "confirmed" [ref=e243]:
+              - generic [ref=e246]: confirmed
+            - cell "cancel Cancel" [ref=e247]:
+              - button "cancel Cancel" [ref=e249] [cursor=pointer]:
+                - generic [ref=e250]: cancel
+                - text: Cancel
+          - row "#SC-0025 Elena Moretti +234 800 000 0451 Table 2 20:30 - 22:30 Snooker confirmed cancel Cancel" [ref=e251]:
+            - cell "#SC-0025" [ref=e252]
+            - cell "Elena Moretti" [ref=e253]
+            - cell "+234 800 000 0451" [ref=e254]
+            - cell "Table 2" [ref=e255]:
+              - generic [ref=e256]: Table 2
+            - cell "20:30 - 22:30" [ref=e257]
+            - cell "Snooker" [ref=e258]
+            - cell "confirmed" [ref=e259]:
+              - generic [ref=e262]: confirmed
+            - cell "cancel Cancel" [ref=e263]:
+              - button "cancel Cancel" [ref=e265] [cursor=pointer]:
+                - generic [ref=e266]: cancel
+                - text: Cancel
+          - row "#SC-0018 David Blackwell +234 800 000 0882 Table 2 17:00 - 19:00 Snooker completed cancel Cancel" [ref=e267]:
+            - cell "#SC-0018" [ref=e268]
+            - cell "David Blackwell" [ref=e269]
+            - cell "+234 800 000 0882" [ref=e270]
+            - cell "Table 2" [ref=e271]:
+              - generic [ref=e272]: Table 2
+            - cell "17:00 - 19:00" [ref=e273]
+            - cell "Snooker" [ref=e274]
+            - cell "completed" [ref=e275]:
+              - generic [ref=e278]: completed
+            - cell "cancel Cancel" [ref=e279]:
+              - button "cancel Cancel" [ref=e281] [cursor=pointer]:
+                - generic [ref=e282]: cancel
+                - text: Cancel
+          - row "#SC-0033 Marcus Sterling +234 800 000 0773 Table 3 21:00 - 23:00 3 Games cancelled cancel Cancel" [ref=e283]:
+            - cell "#SC-0033" [ref=e284]
+            - cell "Marcus Sterling" [ref=e285]
+            - cell "+234 800 000 0773" [ref=e286]
+            - cell "Table 3" [ref=e287]:
+              - generic [ref=e288]: Table 3
+            - cell "21:00 - 23:00" [ref=e289]
+            - cell "3 Games" [ref=e290]
+            - cell "cancelled" [ref=e291]:
+              - generic [ref=e294]: cancelled
+            - cell "cancel Cancel" [ref=e295]:
+              - button "cancel Cancel" [disabled] [ref=e297] [cursor=pointer]:
+                - generic [ref=e298]: cancel
+                - text: Cancel

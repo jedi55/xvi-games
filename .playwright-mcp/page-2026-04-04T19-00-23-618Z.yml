@@ -1,0 +1,112 @@
+- generic [ref=e2]:
+  - banner [ref=e125]:
+    - navigation [ref=e126]:
+      - link "The Sovereign Cue" [ref=e127] [cursor=pointer]:
+        - /url: "#/"
+      - generic [ref=e128]:
+        - link "Home" [ref=e129] [cursor=pointer]:
+          - /url: "#/"
+        - link "Tables" [ref=e130] [cursor=pointer]:
+          - /url: "#/tables"
+      - generic [ref=e131]:
+        - link "Login" [ref=e132] [cursor=pointer]:
+          - /url: "#/login"
+        - link "Book Now" [ref=e133] [cursor=pointer]:
+          - /url: "#/tables"
+  - main [ref=e135]:
+    - generic [ref=e137]:
+      - paragraph [ref=e139]: Elevated Reservations
+      - heading "The Sovereign Cue" [level=1] [ref=e140]
+      - paragraph [ref=e141]: Where precision meets luxury. Reserve your table at Lagos' most exclusive snooker lounge.
+      - link "sports Book a Table" [ref=e142] [cursor=pointer]:
+        - /url: "#/booking"
+        - generic [ref=e143]: sports
+        - text: Book a Table
+    - generic [ref=e145]:
+      - paragraph [ref=e148]: Live Availability
+      - generic [ref=e149]:
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - generic [ref=e153]: sports
+            - generic [ref=e154]: Available
+          - heading "Table 1" [level=3] [ref=e156]
+          - paragraph [ref=e157]: Full-size professional snooker table
+          - link "Reserve arrow_forward" [ref=e158] [cursor=pointer]:
+            - /url: "#/booking"
+            - text: Reserve
+            - generic [ref=e159]: arrow_forward
+        - generic [ref=e160]:
+          - generic [ref=e161]:
+            - generic [ref=e163]: sports
+            - generic [ref=e164]: Available
+          - heading "Table 2" [level=3] [ref=e166]
+          - paragraph [ref=e167]: Tournament-grade championship table
+          - link "Reserve arrow_forward" [ref=e168] [cursor=pointer]:
+            - /url: "#/booking"
+            - text: Reserve
+            - generic [ref=e169]: arrow_forward
+        - generic [ref=e170]:
+          - generic [ref=e171]:
+            - generic [ref=e173]: sports
+            - generic [ref=e174]: Available
+          - heading "Table 3" [level=3] [ref=e176]
+          - paragraph [ref=e177]: Standard table for casual play
+          - link "Reserve arrow_forward" [ref=e178] [cursor=pointer]:
+            - /url: "#/booking"
+            - text: Reserve
+            - generic [ref=e179]: arrow_forward
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - generic [ref=e183]: stars
+            - generic [ref=e184]: Available
+          - heading "VIP Table" [level=3] [ref=e186]
+          - paragraph [ref=e187]: Exclusive private suite with premium amenities
+          - link "Reserve arrow_forward" [ref=e188] [cursor=pointer]:
+            - /url: "#/booking"
+            - text: Reserve
+            - generic [ref=e189]: arrow_forward
+    - generic [ref=e191]:
+      - generic [ref=e192]:
+        - paragraph [ref=e194]: How It Works
+        - heading "Three simple steps to your game" [level=2] [ref=e195]
+      - generic [ref=e196]:
+        - generic [ref=e197]:
+          - generic [ref=e198]: "01"
+          - generic [ref=e200]: table_restaurant
+          - heading "Choose Your Table" [level=3] [ref=e201]
+          - paragraph [ref=e202]: Browse our available tables including the exclusive VIP suite.
+        - generic [ref=e203]:
+          - generic [ref=e204]: "02"
+          - generic [ref=e206]: schedule
+          - heading "Pick Time or Games" [level=3] [ref=e207]
+          - paragraph [ref=e208]: Book by the hour or by number of frames — complete flexibility.
+        - generic [ref=e209]:
+          - generic [ref=e210]: "03"
+          - generic [ref=e212]: verified
+          - heading "Pay & Confirm" [level=3] [ref=e213]
+          - paragraph [ref=e214]: Secure payment via Paystack with instant booking confirmation.
+  - contentinfo [ref=e215]:
+    - generic [ref=e216]:
+      - generic [ref=e217]:
+        - generic [ref=e218]: The Sovereign Cue
+        - paragraph [ref=e219]: Elevated Reservations
+      - generic [ref=e220]:
+        - generic [ref=e221]:
+          - heading "Opening Hours" [level=4] [ref=e222]
+          - paragraph [ref=e223]: Monday – Sunday
+          - paragraph [ref=e224]: 10:00 AM – 11:00 PM
+        - generic [ref=e225]:
+          - heading "Contact" [level=4] [ref=e226]
+          - paragraph [ref=e227]: +234 812 345 6789
+          - paragraph [ref=e228]: info@thesovereigncue.com
+        - generic [ref=e229]:
+          - heading "Address" [level=4] [ref=e230]
+          - paragraph [ref=e231]: 12 Victoria Island Drive
+          - paragraph [ref=e232]: Lagos, Nigeria
+      - generic [ref=e233]:
+        - generic [ref=e234]: © 2026 The Sovereign Cue. All Rights Reserved.
+        - generic [ref=e235]:
+          - link "Privacy Policy" [ref=e236] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms of Service" [ref=e237] [cursor=pointer]:
+            - /url: "#"

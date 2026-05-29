@@ -1,0 +1,123 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - navigation [ref=e4]:
+      - link "The Sovereign Cue" [ref=e5] [cursor=pointer]:
+        - /url: "#/"
+      - generic [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: "#/"
+        - link "Tables" [ref=e8] [cursor=pointer]:
+          - /url: "#/tables"
+      - generic [ref=e9]:
+        - link "Login" [ref=e10] [cursor=pointer]:
+          - /url: "#/login"
+        - link "Book Now" [ref=e11] [cursor=pointer]:
+          - /url: "#/tables"
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - paragraph [ref=e16]: SELECT A TABLE
+        - heading "Our Snooker Tables" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Choose from our three premium tables. Each is maintained to the highest standards for your enjoyment.
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - paragraph [ref=e22]: TABLE 1
+          - paragraph [ref=e23]: Available
+        - generic [ref=e24]:
+          - paragraph [ref=e26]: TABLE 2
+          - paragraph [ref=e27]: Available
+        - generic [ref=e28]:
+          - paragraph [ref=e30]: TABLE 3
+          - paragraph [ref=e31]: Available
+      - generic [ref=e32]:
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e37]: sports
+            - generic [ref=e38]: Available
+          - heading "Table 1" [level=3] [ref=e40]
+          - paragraph [ref=e41]: Premium full-size snooker table with tournament-grade cloth
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]: straighten
+              - generic [ref=e45]: Full-size 12ft table
+            - generic [ref=e46]:
+              - generic [ref=e47]: lightbulb
+              - generic [ref=e48]: Professional lighting
+            - generic [ref=e49]:
+              - generic [ref=e50]: scoreboard
+              - generic [ref=e51]: Electronic scoreboard
+          - generic [ref=e52]:
+            - generic [ref=e53]: FROM ₦1,500
+            - link "arrow_forward Reserve" [ref=e54] [cursor=pointer]:
+              - /url: "#/booking/1"
+              - generic [ref=e55]: arrow_forward
+              - text: Reserve
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - generic [ref=e60]: sports
+            - generic [ref=e61]: Available
+          - heading "Table 2" [level=3] [ref=e63]
+          - paragraph [ref=e64]: Professional snooker table ideal for competitive play
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - generic [ref=e67]: straighten
+              - generic [ref=e68]: Full-size 12ft table
+            - generic [ref=e69]:
+              - generic [ref=e70]: lightbulb
+              - generic [ref=e71]: Professional lighting
+            - generic [ref=e72]:
+              - generic [ref=e73]: scoreboard
+              - generic [ref=e74]: Electronic scoreboard
+          - generic [ref=e75]:
+            - generic [ref=e76]: FROM ₦1,500
+            - link "arrow_forward Reserve" [ref=e77] [cursor=pointer]:
+              - /url: "#/booking/2"
+              - generic [ref=e78]: arrow_forward
+              - text: Reserve
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - generic [ref=e83]: sports
+            - generic [ref=e84]: Available
+          - heading "Table 3" [level=3] [ref=e86]
+          - paragraph [ref=e87]: Standard snooker table perfect for casual games
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - generic [ref=e90]: straighten
+              - generic [ref=e91]: Full-size 12ft table
+            - generic [ref=e92]:
+              - generic [ref=e93]: lightbulb
+              - generic [ref=e94]: Professional lighting
+            - generic [ref=e95]:
+              - generic [ref=e96]: scoreboard
+              - generic [ref=e97]: Electronic scoreboard
+          - generic [ref=e98]:
+            - generic [ref=e99]: FROM ₦1,500
+            - link "arrow_forward Reserve" [ref=e100] [cursor=pointer]:
+              - /url: "#/booking/3"
+              - generic [ref=e101]: arrow_forward
+              - text: Reserve
+  - contentinfo [ref=e102]:
+    - generic [ref=e103]:
+      - generic [ref=e104]:
+        - generic [ref=e105]: The Sovereign Cue
+        - paragraph [ref=e106]: Elevated Reservations
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - heading "Opening Hours" [level=4] [ref=e109]
+          - paragraph [ref=e110]: Monday – Sunday
+          - paragraph [ref=e111]: 10:00 AM – 11:00 PM
+        - generic [ref=e112]:
+          - heading "Contact" [level=4] [ref=e113]
+          - paragraph [ref=e114]: +234 812 345 6789
+          - paragraph [ref=e115]: info@thesovereigncue.com
+        - generic [ref=e116]:
+          - heading "Address" [level=4] [ref=e117]
+          - paragraph [ref=e118]: 12 Victoria Island Drive
+          - paragraph [ref=e119]: Lagos, Nigeria
+      - generic [ref=e120]:
+        - generic [ref=e121]: © 2026 The Sovereign Cue. All Rights Reserved.
+        - generic [ref=e122]:
+          - link "Privacy Policy" [ref=e123] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms of Service" [ref=e124] [cursor=pointer]:
+            - /url: "#"

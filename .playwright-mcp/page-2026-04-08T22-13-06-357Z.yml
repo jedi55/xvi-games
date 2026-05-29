@@ -1,0 +1,28 @@
+- generic [ref=e4]:
+  - heading "XVI" [level=1] [ref=e6]
+  - generic [ref=e7]:
+    - heading "Welcome Back" [level=2] [ref=e8]
+    - paragraph [ref=e9]: Sign in to your account
+  - generic [ref=e10]:
+    - generic [ref=e11]:
+      - generic [ref=e12]: Email Address
+      - textbox "Email Address" [ref=e13]:
+        - /placeholder: you@example.com
+    - generic [ref=e14]:
+      - generic [ref=e15]: Password
+      - generic [ref=e16]:
+        - textbox "Password" [ref=e17]:
+          - /placeholder: Enter your password
+        - button "visibility_off" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: visibility_off
+    - link "Forgot your password?" [ref=e21] [cursor=pointer]:
+      - /url: "#/forgot-password"
+    - button "Sign In" [ref=e22] [cursor=pointer]
+  - generic [ref=e25]: or continue with
+  - button "Continue with Google" [ref=e27] [cursor=pointer]:
+    - img [ref=e28]
+    - text: Continue with Google
+  - paragraph [ref=e34]:
+    - text: Don't have an account?
+    - link "Sign up" [ref=e35] [cursor=pointer]:
+      - /url: "#/signup"

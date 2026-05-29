@@ -1,0 +1,10 @@
+[     113ms] [ERROR] WebSocket connection to 'ws://localhost:5174/?token=ZPOMpnjJ8KDu' failed: Error during WebSocket handshake: Unexpected response code: 400 @ http://localhost:5174/@vite/client:801
+[     119ms] [ERROR] WebSocket connection to 'ws://localhost:5173/?token=ZPOMpnjJ8KDu' failed: Error during WebSocket handshake: Unexpected response code: 400 @ http://localhost:5174/@vite/client:814
+[     129ms] [ERROR] [vite] failed to connect to websocket.
+your current setup:
+  (browser) localhost:5174/ <--[HTTP]--> localhost:5173/ (server)
+  (browser) localhost:5174/ <--[WebSocket (failing)]--> localhost:5173/ (server)
+Check out your Vite / network configuration and https://vite.dev/config/server-options.html#server-hmr . @ http://localhost:5174/@vite/client:829
+[     380ms] Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at new Resend (http://localhost:5174/node_modules/.vite/deps/resend.js?v=56d66a1d:13622:28)
+    at http://localhost:5174/src/lib/email.js:4:16
