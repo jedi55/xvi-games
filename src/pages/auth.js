@@ -584,27 +584,59 @@ export async function renderAuthCallbackPage(app) {
     </div>
   `;
 
-  // Wait briefly for Supabase client to parse the URL hash and set the session
-  setTimeout(async () => {
-    try {
-      const session = await getSession();
-      if (session) {
-        const isAdmin = ['xviigames101@gmail.com', 'riveramoses555@gmail.com', import.meta.env.VITE_ADMIN_EMAIL, import.meta.env.VITE_ADMIN_EMAIL_2]
-          .filter(Boolean)
-          .includes(session.user.email);
-        
-        if (isAdmin) {
-          sessionStorage.setItem('adminAuth', 'true');
-          router.navigate('/admin');
-        } else {
-          router.navigate('/');
-        }
-      } else {
-        router.navigate('/login');
-      }
-    } catch (e) {
-      console.error("Error during auth callback processing:", e);
+  const ADMIN_EMAILS = [
+    'xviigames101@gmail.com',
+    'riveramoses555@gmail.com',
+    import.meta.env.VITE_ADMIN_EMAIL,
+    import.meta.env.VITE_ADMIN_EMAIL_2
+  ].filter(Boolean);
+
+  function redirectAfterAuth(session) {
+    if (!session) {
+      router.navigate('/login');
+      return;
+    }
+    const isAdmin = ADMIN_EMAILS.includes(session.user.email);
+    if (isAdmin) {
+      sessionStorage.setItem('adminAuth', 'true');
+      router.navigate('/admin');
+    } else {
+      router.navigate('/');
+    }
+  }
+
+  // Strategy 1: listen for the auth state change event (catches async token exchange)
+  let handled = false;
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (handled) return;
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'PASSWORD_RECOVERY') {
+      handled = true;
+      subscription.unsubscribe();
+      redirectAfterAuth(session);
+    }
+  });
+
+  // Strategy 2: check if session already exists right now (covers cases where
+  // SIGNED_IN already fired before this page rendered)
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && !handled) {
+      handled = true;
+      subscription.unsubscribe();
+      redirectAfterAuth(session);
+      return;
+    }
+  } catch (e) {
+    console.warn('getSession check failed:', e.message);
+  }
+
+  // Strategy 3: safety timeout — if nothing fires in 5s, go to login
+  setTimeout(() => {
+    if (!handled) {
+      handled = true;
+      subscription.unsubscribe();
+      console.warn('Auth callback timed out — no session detected');
       router.navigate('/login');
     }
-  }, 1000);
+  }, 5000);
 }

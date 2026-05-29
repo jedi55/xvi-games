@@ -29,12 +29,14 @@ export async function signIn(email, password) {
 
 // ─── Sign In with Google ───
 export async function signInWithGoogle() {
-  // Redirect to /#/auth/callback so the callback page handles admin vs user routing
-  const redirectTo = window.location.origin + '/#/auth/callback';
+  // IMPORTANT: redirectTo must be just the origin (no hash fragment).
+  // Supabase appends '#access_token=...' to this URL after OAuth.
+  // If we include '/#/something' here, the final URL gets two '#' characters
+  // which corrupts the token and causes getSession() to return null.
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo,
+      redirectTo: window.location.origin,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent'
@@ -119,7 +121,7 @@ export async function getSession() {
 }
 
 export function clearSessionCache() {
-  _sessionCache = null
+  _sessionCache = undefined  // Must be undefined, not null — the cache check uses !== undefined
   _sessionCacheTime = 0
   _sessionPromise = null
 }

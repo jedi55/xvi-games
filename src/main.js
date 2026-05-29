@@ -78,15 +78,13 @@ async function getSessionSafe() {
 
 try {
   initTheme()
-  
-  // Handle OAuth / email-link redirect — if Supabase returns with access_token in the hash,
-  // delegate to the auth callback page which handles admin vs user routing.
-  if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
-    // Replace the current hash with the auth callback route so the router renders it.
-    // The renderAuthCallbackPage function will read the session and redirect appropriately.
-    window.location.hash = '#/auth/callback';
-  }
-  // Routes registered below — router.start() called after all registrations
+  // NOTE: Do NOT manipulate window.location.hash here.
+  // When Supabase redirects back after OAuth, the URL is:
+  //   https://xvigames.com/#access_token=...&token_type=bearer...
+  // supabase-js (detectSessionInUrl: true) automatically parses this hash
+  // and fires onAuthStateChange('SIGNED_IN', session).
+  // Touching the hash before that happens destroys the tokens.
+  // The SIGNED_IN handler below takes care of all routing after OAuth.
 } catch (err) {
   console.error('App init error:', err)
   document.body.innerHTML = `
@@ -110,35 +108,47 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     const mfaRequired = await checkMFARequired()
     
     if (mfaRequired) {
-      // Show 2FA modal before allowing access
       show2FAModal(
-        () => {
-          // Success — proceed to appropriate page
-          const hash = window.location.hash
-          if (hash.includes('access_token')) {
-            window.location.href = '/#/'
-          } else {
-            router.resolve()
-          }
-        },
-        () => {
-          // Cancelled — go to login
-          router.navigate('/login')
-        }
+        () => { router.navigate('/') },
+        () => { router.navigate('/login') }
       )
       return
     }
     
     await updateNavbar()
 
-    // Show membership popup 3s after login for non-admin users
-    const ADMIN_EMAILS_CHECK = [
+    // Redirect after ANY login type (email, Google OAuth, magic link, etc.).
+    // We redirect if the user is on an auth page or on the raw OAuth landing hash.
+    const ADMIN_EMAILS = [
       'xviigames101@gmail.com',
       'riveramoses555@gmail.com',
       import.meta.env.VITE_ADMIN_EMAIL,
       import.meta.env.VITE_ADMIN_EMAIL_2
     ].filter(Boolean)
-    const isAdminUser = ADMIN_EMAILS_CHECK.includes(session.user.email)
+    const isAdminUser = ADMIN_EMAILS.includes(session.user.email)
+
+    const currentHash = window.location.hash
+    const isOnAuthPage = (
+      currentHash === '#/login'   ||
+      currentHash === '#/signup'  ||
+      currentHash.includes('access_token=') ||   // Google OAuth landing
+      currentHash.includes('type=recovery')  ||   // password-reset landing
+      currentHash === '#' ||
+      currentHash === ''
+    )
+
+    if (isOnAuthPage) {
+      if (isAdminUser) {
+        sessionStorage.setItem('adminAuth', 'true')
+        router.navigate('/admin')
+      } else {
+        router.navigate('/')
+      }
+      return
+    }
+
+    // Already on a real page (e.g. token refresh while browsing).
+    // Just show the membership popup for non-admin users.
     if (!isAdminUser) {
       setTimeout(async () => {
         const { showMembershipPopup } = await import('./components/membership-popup.js')
@@ -212,36 +222,58 @@ const isDemoMode = () => {
 
 // ─── Auth Guard ───
 router.before(async (route) => {
-  // In demo mode, skip all auth checks so admin and all pages are accessible
+  // In demo mode, skip all auth checks
   if (isDemoMode()) return true;
 
+  // ── Guard 1: bounce logged-in users away from auth pages ──
+  // If an authenticated user lands on /login or /signup, redirect them home.
+  if (route.path === '/login' || route.path === '/signup') {
+    const session = await getSession()
+    if (session) {
+      const adminEmails = [
+        import.meta.env.VITE_ADMIN_EMAIL,
+        import.meta.env.VITE_ADMIN_EMAIL_2,
+        'xviigames101@gmail.com',
+        'riveramoses555@gmail.com'
+      ].filter(Boolean)
+      if (adminEmails.includes(session.user?.email)) {
+        router.navigate('/admin')
+      } else {
+        router.navigate('/')
+      }
+      return false
+    }
+    return true  // not logged in — allow the login/signup page to render
+  }
+
+  // ── Guard 2: admin-protected routes ──
   if (route.admin) {
     const session = await getSessionSafe()
-    
     const adminEmails = [
       import.meta.env.VITE_ADMIN_EMAIL,
       import.meta.env.VITE_ADMIN_EMAIL_2,
       'xviigames101@gmail.com',
-      'riveramoses555@gmail.com'  
+      'riveramoses555@gmail.com'
     ].filter(Boolean)
-    
-    const isSupabaseAdmin = session?.user && 
-      adminEmails.includes(session.user.email)
-    const isSessionAdmin = 
-      sessionStorage.getItem('adminAuth') === 'true'
-    
+    const isSupabaseAdmin = session?.user && adminEmails.includes(session.user.email)
+    const isSessionAdmin  = sessionStorage.getItem('adminAuth') === 'true'
     if (!isSupabaseAdmin && !isSessionAdmin) {
-      router.navigate('/admin') // go to admin login
+      router.navigate('/admin')
       return false
     }
-  } else if (route.auth) {
-    const session = await getSession();
+    return true
+  }
+
+  // ── Guard 3: auth-required routes ──
+  if (route.auth) {
+    const session = await getSession()
     if (!session) {
-      router.navigate('/login');
-      return false;
+      router.navigate('/login')
+      return false
     }
   }
-  return true;
+
+  return true
 });
 
 // ─── Native Auth Flow Protection ───
