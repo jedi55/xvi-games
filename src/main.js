@@ -79,24 +79,12 @@ async function getSessionSafe() {
 try {
   initTheme()
   
-  // Handle OAuth redirect
-  if (window.location.hash.includes('access_token')) {
-    getSessionSafe().then((session) => {
-      if (session) {
-        const ADMIN_EMAILS = [
-          import.meta.env.VITE_ADMIN_EMAIL,
-          import.meta.env.VITE_ADMIN_EMAIL_2,
-          'xviigames101@gmail.com',
-          'riveramoses555@gmail.com'
-        ].filter(Boolean)
-        
-        const isAdmin = ADMIN_EMAILS.includes(session.user?.email)
-        
-        setTimeout(() => {
-          window.location.href = isAdmin ? '/#/admin' : '/#/'
-        }, 500)
-      }
-    })
+  // Handle OAuth / email-link redirect — if Supabase returns with access_token in the hash,
+  // delegate to the auth callback page which handles admin vs user routing.
+  if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
+    // Replace the current hash with the auth callback route so the router renders it.
+    // The renderAuthCallbackPage function will read the session and redirect appropriately.
+    window.location.hash = '#/auth/callback';
   }
   // Routes registered below — router.start() called after all registrations
 } catch (err) {

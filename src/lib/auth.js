@@ -29,10 +29,12 @@ export async function signIn(email, password) {
 
 // ─── Sign In with Google ───
 export async function signInWithGoogle() {
+  // Redirect to /#/auth/callback so the callback page handles admin vs user routing
+  const redirectTo = window.location.origin + '/#/auth/callback';
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin + '/',
+      redirectTo,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent'
@@ -45,11 +47,12 @@ export async function signInWithGoogle() {
 
 // ─── Resend Verification Email ───
 export async function resendVerification(email) {
+  const redirectTo = window.location.origin + '/#/auth/callback';
   const { error } = await supabase.auth.resend({
     type: 'signup',
     email,
     options: {
-      emailRedirectTo: window.location.origin + '/#/auth/callback'
+      emailRedirectTo: redirectTo
     }
   });
   if (error) throw error;
@@ -57,8 +60,9 @@ export async function resendVerification(email) {
 
 // ─── Reset Password ───
 export async function resetPasswordForEmail(email) {
+  const redirectTo = window.location.origin + '/#/reset-password';
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/#/reset-password',
+    redirectTo,
   });
   if (error) throw error;
 }

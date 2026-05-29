@@ -343,12 +343,13 @@ function setupSignupHandlers() {
 
     try {
       // Pass the name and phone via metadata
+      const emailRedirectTo = window.location.origin + '/#/auth/callback';
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { full_name: name, phone: phone },
-          emailRedirectTo: window.location.origin + '/#/auth/callback'
+          emailRedirectTo
         }
       });
       if (error) throw error;
