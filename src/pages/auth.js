@@ -6,7 +6,7 @@ export async function renderLoginPage(app) {
   // Use a dedicated dark green background with a centered white card
   app.innerHTML = `
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #0a1f0a; padding: 1rem; font-family: 'Manrope', sans-serif;">
-      <div style="background: white; border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+      <div class="auth-card" style="background: white; border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
         
         <!-- Logo / Name -->
         <div style="text-align: center; margin-bottom: 2rem;">
@@ -183,7 +183,7 @@ import { signUp } from '../lib/auth.js';
 export async function renderSignupPage(app) {
   app.innerHTML = `
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #0a1f0a; padding: 2rem 1rem; font-family: 'Manrope', sans-serif;">
-      <div style="background: white; border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+      <div class="auth-card" style="background: white; border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
         
         <div style="text-align: center; margin-bottom: 2rem;">
           <h1 style="font-family: 'Noto Serif', serif; color: #c9a84c; font-size: 2.5rem; margin: 0; line-height: 1;">XVI</h1>

@@ -198,10 +198,107 @@ button {
   color: inherit;
 }
 
-input, select, textarea {
+/* ── Global Input / Select / Textarea Reset & Accessibility Fix ──
+   WCAG AA requires 4.5:1 contrast ratio for normal text.
+   Dark mode: white text (#e2e3df) on dark surface (#132e13) = ~9:1 ✓
+   Light mode: near-black (#111827) on white (#ffffff) = ~18:1 ✓
+   ─────────────────────────────────────────────────────────────── */
+input,
+select,
+textarea {
   font-family: inherit;
-  color: inherit;
-  background: transparent;
+  /* Dark mode defaults: readable white text on a slightly lighter surface */
+  color: #e2e3df;
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+/* Placeholder: muted but still readable (contrast ≥ 3:1) */
+input::placeholder,
+textarea::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 0.75;
+}
+
+/* Focus ring — keyboard accessible */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(105, 223, 94, 0.18);
+}
+
+/* Autofill fix — browsers inject white bg which breaks dark theme */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #e2e3df !important;
+  box-shadow: 0 0 0 1000px var(--surface-container) inset !important;
+  caret-color: #e2e3df;
+}
+
+/* ── Light Mode: flip to dark text on light background ── */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  color: #111827;
+  background: #ffffff;
+  border-color: #d1d5db;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 92, 26, 0.15);
+}
+
+[data-theme="light"] input:-webkit-autofill,
+[data-theme="light"] input:-webkit-autofill:hover,
+[data-theme="light"] input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111827 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  caret-color: #111827;
+}
+
+/* ── Auth card inputs: white card background needs dark text ──
+   Login/Signup pages use inline style white cards, these override
+   the global dark defaults specifically for those contexts.     */
+.auth-card input,
+.auth-card select,
+.auth-card textarea {
+  color: #1a1a1a;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+}
+
+.auth-card input::placeholder,
+.auth-card textarea::placeholder {
+  color: #999999;
+  opacity: 1;
+}
+
+.auth-card input:focus,
+.auth-card select:focus,
+.auth-card textarea:focus {
+  border-color: #69df5e;
+  box-shadow: 0 0 0 3px rgba(105, 223, 94, 0.2);
+}
+
+/* Password inputs: force text visibility, never white-on-white */
+input[type="password"] {
+  letter-spacing: 0.1em;   /* makes dots spaced and easier to count */
 }
 
 /* ── Typography Classes ── */

@@ -351,9 +351,14 @@
   padding: 0.5rem 1rem 0.5rem 2.5rem;
   background: var(--surface-container);
   border: none;
-  color: var(--on-surface);
+  color: var(--on-surface);       /* readable on dark surface */
   font-size: 0.875rem;
   outline: none;
+}
+
+.search-input input::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 0.7;
 }
 
 .search-input input:focus {
@@ -1585,22 +1590,26 @@
 .wizard-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: var(--surface-container-low);
-  border: 1px solid rgba(105, 223, 94, 0.1);
+  background: var(--surface-container);
+  border: 1px solid rgba(105, 223, 94, 0.15);
   border-radius: var(--radius-lg);
-  color: var(--on-surface);
+  color: var(--on-surface);        /* #e2e3df in dark mode — clearly visible */
   font-family: var(--font-body);
   font-size: 0.9rem;
   outline: none;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .wizard-input:focus {
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(105, 223, 94, 0.15);
 }
 
 .wizard-input::placeholder {
-  color: var(--surface-container-highest);
+  /* Was var(--surface-container-highest) — dark green, invisible on dark bg.
+     Now uses on-surface-variant which is a readable muted text colour. */
+  color: var(--on-surface-variant);
+  opacity: 0.65;
 }
 
 /* ── Order Summary Card ── */
@@ -2746,9 +2755,9 @@
   width: 100%;
   padding: 0.75rem 1rem;
   background: var(--surface-container);
-  border: 1px solid rgba(105, 223, 94, 0.1);
+  border: 1px solid rgba(105, 223, 94, 0.15);
   border-radius: 8px;
-  color: var(--on-surface);
+  color: var(--on-surface);       /* clearly visible text in both modes */
   font-family: var(--font-body);
   font-size: 0.95rem;
   outline: none;
@@ -2757,13 +2766,13 @@
 }
 
 .account-input:focus {
-  border-color: rgba(105, 223, 94, 0.4);
-  box-shadow: 0 0 0 3px rgba(105, 223, 94, 0.08);
+  border-color: rgba(105, 223, 94, 0.5);
+  box-shadow: 0 0 0 3px rgba(105, 223, 94, 0.12);
 }
 
 .account-input::placeholder {
-  color: var(--outline);
-  opacity: 0.6;
+  color: var(--on-surface-variant);
+  opacity: 0.7;    /* was 0.6 — raised for better contrast */
 }
 
 .account-btn-primary {
