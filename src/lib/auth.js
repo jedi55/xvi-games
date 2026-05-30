@@ -49,15 +49,28 @@ export async function signInWithGoogle() {
 
 // ─── Resend Verification Email ───
 export async function resendVerification(email) {
-  const redirectTo = window.location.origin + '/#/auth/callback';
-  const { error } = await supabase.auth.resend({
+  // IMPORTANT: redirectTo must be just the origin — no hash fragment.
+  // Supabase appends '#access_token=...' after verifying.
+  // Adding '/#/auth/callback' here creates a double-# URL and breaks the link.
+  const redirectTo = window.location.origin;
+
+  console.log('[Auth] Resending verification email to:', email, '| redirectTo:', redirectTo);
+
+  const { data, error } = await supabase.auth.resend({
     type: 'signup',
     email,
     options: {
       emailRedirectTo: redirectTo
     }
   });
-  if (error) throw error;
+
+  if (error) {
+    console.error('[Auth] resend error:', error.message, error);
+    throw error;
+  }
+
+  console.log('[Auth] Resend response:', data);
+  return data;
 }
 
 // ─── Reset Password ───

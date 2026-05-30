@@ -343,7 +343,8 @@ function setupSignupHandlers() {
 
     try {
       // Pass the name and phone via metadata
-      const emailRedirectTo = window.location.origin + '/#/auth/callback';
+      // emailRedirectTo must be just the origin — no hash fragment (double-# breaks the link)
+      const emailRedirectTo = window.location.origin;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -359,7 +360,8 @@ function setupSignupHandlers() {
       form.reset();
       submitBtn.style.display = 'none';
       setTimeout(() => {
-        router.navigate('/verify-email');
+        // Pass email as param so verify-email page can pre-fill the input
+        router.navigate(`/verify-email?email=${encodeURIComponent(email)}`);
       }, 2000);
       
     } catch (err) {
@@ -377,73 +379,146 @@ function setupSignupHandlers() {
 import { resendVerification } from '../lib/auth.js';
 
 export async function renderVerifyEmailPage(app) {
+  // Try to pre-fill email from URL hash params e.g. #/verify-email?email=foo@bar.com
+  const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  const prefillEmail = hashParams.get('email') || '';
+
   app.innerHTML = `
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #0a1f0a; padding: 1rem; font-family: 'Manrope', sans-serif;">
-      <div style="background: white; border-radius: 12px; padding: 3rem 2rem; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center;">
+      <div class="auth-card" style="background: white; border-radius: 12px; padding: 3rem 2rem; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center;">
         
-        <span class="material-symbols-outlined" style="font-size: 4rem; color: #c9a84c; margin-bottom: 1rem;">mark_email_read</span>
+        <span class="material-symbols-outlined" style="font-size: 4rem; color: #c9a84c; display: block; margin-bottom: 1rem;">mark_email_read</span>
         
         <h2 style="color: #1a1a1a; font-size: 1.75rem; margin: 0 0 1rem 0; font-weight: 700;">Check Your Email</h2>
         
-        <p style="color: #666; font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">
-          We sent a verification link to your email address. Click the link in the email to activate your account.
+        <p style="color: #666; font-size: 0.95rem; margin-bottom: 0.75rem; line-height: 1.5;">
+          We sent a verification link to your email address. Click the link to activate your account.
         </p>
 
-        <p style="color: #999; font-size: 0.8rem; margin-bottom: 2rem;">
-          Didn't receive it? Check your spam folder.
+        <p style="color: #999; font-size: 0.8rem; margin-bottom: 1.75rem;">
+          Didn't get it? Check your <strong>spam/junk</strong> folder first, then use the form below.
         </p>
 
-        <div id="resend-success" style="display: none; color: #00C851; font-weight: 600; font-size: 0.9rem; margin-bottom: 1rem;">
-          Email sent!
-        </div>
-        
-        <div id="resend-error" style="display: none; color: #ff4444; font-weight: 600; font-size: 0.9rem; margin-bottom: 1rem;"></div>
+        <!-- Feedback messages -->
+        <div id="resend-success" style="display:none; background:#f0fff0; border-left:4px solid #69df5e; color:#006600; padding:0.75rem 1rem; border-radius:6px; font-size:0.875rem; text-align:left; margin-bottom:1rem; line-height:1.5;"></div>
+        <div id="resend-error"   style="display:none; background:#fff0f0; border-left:4px solid #ff4444; color:#cc0000; padding:0.75rem 1rem; border-radius:6px; font-size:0.875rem; text-align:left; margin-bottom:1rem; line-height:1.5;"></div>
 
-        <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
-            <input type="email" id="verify-email" placeholder="Enter your email" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; outline: none; margin-bottom: 0.5rem;" />
-            <button id="resend-btn" style="width: 100%; padding: 0.75rem; background: transparent; color: #69df5e; border: 1px solid #69df5e; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">
-              Resend Verification Email
-            </button>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <input type="email" id="verify-email"
+                 value="${prefillEmail}"
+                 placeholder="Enter your email address"
+                 style="width:100%; padding:0.75rem 1rem; border:1px solid #ddd; border-radius:6px; font-size:0.95rem; color:#1a1a1a; background:#f9f9f9; outline:none; box-sizing:border-box;" />
+
+          <button id="resend-btn"
+                  style="width:100%; padding:0.8rem; background:transparent; color:#69df5e; border:1.5px solid #69df5e; border-radius:6px; font-size:0.95rem; font-weight:700; cursor:pointer; transition:background 0.2s, color 0.2s;">
+            Resend Verification Email
+          </button>
         </div>
 
-        <div style="margin-top: 2rem;">
-          <a href="#/login" style="color: #666; font-size: 0.9rem; text-decoration: none; font-weight: 600;">← Back to login</a>
+        <div id="cooldown-msg" style="display:none; color:#999; font-size:0.8rem; margin-top:0.5rem;"></div>
+
+        <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid #f0f0f0;">
+          <a href="#/login" style="color:#666; font-size:0.9rem; text-decoration:none; font-weight:600;">← Back to login</a>
         </div>
 
       </div>
     </div>
   `;
 
-  document.getElementById('resend-btn')?.addEventListener('click', async (e) => {
-    const btn = e.target;
-    const email = document.getElementById('verify-email').value;
-    const err = document.getElementById('resend-error');
-    const succ = document.getElementById('resend-success');
-    
-    err.style.display = 'none';
-    succ.style.display = 'none';
+  const btn         = document.getElementById('resend-btn');
+  const emailInput  = document.getElementById('verify-email');
+  const errDiv      = document.getElementById('resend-error');
+  const succDiv     = document.getElementById('resend-success');
+  const cooldownMsg = document.getElementById('cooldown-msg');
+
+  // Friendly error message mapper
+  function friendlyError(message) {
+    if (!message) return 'Something went wrong. Please try again.';
+    const m = message.toLowerCase();
+    if (m.includes('rate limit') || m.includes('too many'))
+      return 'Too many requests — please wait a minute before trying again.';
+    if (m.includes('already confirmed') || m.includes('email already'))
+      return 'This email is already confirmed. Try logging in instead.';
+    if (m.includes('user not found') || m.includes('no user'))
+      return 'No account found with this email. Please sign up first.';
+    if (m.includes('invalid email'))
+      return 'Please enter a valid email address.';
+    if (m.includes('network') || m.includes('fetch'))
+      return 'Network error — check your connection and try again.';
+    return message;  // show raw message if no match
+  }
+
+  // Cooldown timer (60s) to prevent spam-clicking
+  let cooldownTimer = null;
+  function startCooldown() {
+    let seconds = 60;
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    cooldownMsg.style.display = 'block';
+
+    const tick = () => {
+      cooldownMsg.textContent = `You can resend again in ${seconds}s`;
+      if (seconds <= 0) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = 'Resend Verification Email';
+        cooldownMsg.style.display = 'none';
+        return;
+      }
+      seconds--;
+      cooldownTimer = setTimeout(tick, 1000);
+    };
+    tick();
+  }
+
+  btn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+
+    // Reset feedback
+    errDiv.style.display  = 'none';
+    succDiv.style.display = 'none';
+    errDiv.textContent    = '';
+    succDiv.textContent   = '';
 
     if (!email) {
-      err.textContent = 'Please enter your email';
-      err.style.display = 'block';
+      errDiv.textContent    = 'Please enter your email address.';
+      errDiv.style.display  = 'block';
+      emailInput.focus();
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errDiv.textContent   = 'Please enter a valid email address.';
+      errDiv.style.display = 'block';
       return;
     }
 
     btn.disabled = true;
-    btn.innerHTML = 'Sending...';
+    btn.textContent = 'Sending…';
 
     try {
       await resendVerification(email);
-      succ.style.display = 'block';
+
+      succDiv.innerHTML   = `✅ Verification email sent to <strong>${email}</strong>.<br/>
+        <span style="font-weight:400;">Check your inbox <em>and spam folder</em>. The link expires in 24 hours.</span>`;
+      succDiv.style.display = 'block';
+
+      startCooldown();
+
     } catch (error) {
-      err.textContent = error.message;
-      err.style.display = 'block';
+      console.error('[VerifyEmail] Resend failed:', error);
+      errDiv.textContent   = friendlyError(error.message);
+      errDiv.style.display = 'block';
+
+      btn.disabled    = false;
+      btn.textContent = 'Resend Verification Email';
     }
-    
-    btn.disabled = false;
-    btn.innerHTML = 'Resend Verification Email';
   });
 }
+
 
 // ══════════════════════════════════════════════════════════
 // FORGOT PASSWORD PAGE
