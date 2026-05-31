@@ -139,7 +139,7 @@ function setupLoginHandlers() {
     e.preventDefault();
     errorAlert.style.display = 'none';
     
-    const email = document.getElementById('login-email').value;
+    const email = document.getElementById('login-email').value.trim();
     const password = passwordInput.value;
 
     if (!email || !password) {
@@ -151,26 +151,66 @@ function setupLoginHandlers() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:#003a03;border-right-color:rgba(0,58,3,0.3);border-bottom-color:rgba(0,58,3,0.3);border-left-color:rgba(0,58,3,0.3);"></span> Signing In...';
 
-    try {
-      await signIn(email, password);
-
-      // One-time membership prompt (only if not already a member)
-      const { isMember: checkMember } = await import('../utils/membershipUtils.js');
-      if (!checkMember() && !sessionStorage.getItem('mbr_prompt_dismissed')) {
-        const banner = document.createElement('div');
-        banner.id = 'mbr-login-banner';
-        banner.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid #d4af37;border-radius:10px;padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;z-index:9999;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.5);font-family:Manrope,sans-serif;';
-        banner.innerHTML = '<span style="color:#d4af37;font-size:0.9rem;flex:1;">🎱 <strong>Save on every booking</strong> — subscribe to a membership plan</span><a href="#/membership" style="color:#d4af37;font-weight:700;font-size:0.8rem;text-decoration:none;white-space:nowrap;border:1px solid #d4af37;padding:0.375rem 0.75rem;border-radius:6px;">View Plans</a><button onclick="document.getElementById(\'mbr-login-banner\').remove();sessionStorage.setItem(\'mbr_prompt_dismissed\',\'1\')" style="background:none;border:none;color:#666;cursor:pointer;font-size:1.1rem;line-height:1;padding:0;">&times;</button>';
-        document.body.appendChild(banner);
-        setTimeout(() => banner?.remove(), 8000);
-      }
-
-      router.navigate('/');
-    } catch (err) {
-      errorAlert.textContent = err.message || 'Invalid email or password';
-      errorAlert.style.display = 'block';
+    // Fallback: if we never navigate away within 5s, re-enable the button
+    const stuckTimer = setTimeout(() => {
       submitBtn.disabled = false;
       submitBtn.innerHTML = 'Sign In';
+      errorAlert.textContent = 'Login timed out. Please try again.';
+      errorAlert.style.display = 'block';
+    }, 5000);
+
+    try {
+      const { user } = await signIn(email, password);
+
+      // Success — update button immediately so users know it worked
+      submitBtn.innerHTML = '✓ Signed in! Redirecting…';
+      submitBtn.style.background = '#22c55e';
+      submitBtn.style.color = '#fff';
+      clearTimeout(stuckTimer);
+
+      // Determine destination (admin vs regular user)
+      const ADMIN_EMAILS = [
+        'xviigames101@gmail.com',
+        'riveramoses555@gmail.com',
+        import.meta.env.VITE_ADMIN_EMAIL,
+        import.meta.env.VITE_ADMIN_EMAIL_2
+      ].filter(Boolean);
+
+      const isAdminUser = user && ADMIN_EMAILS.includes(user.email);
+      if (isAdminUser) sessionStorage.setItem('adminAuth', 'true');
+
+      const destination = isAdminUser ? '/#/admin' : '/';
+
+      // Hard redirect — works reliably on Safari + Chrome regardless of SPA state.
+      // Using href instead of router.navigate avoids any race with onAuthStateChange.
+      window.location.href = destination;
+
+      // Backup: if href assignment is somehow delayed (Safari quirk), force it
+      setTimeout(() => {
+        window.location.replace(destination);
+      }, 1500);
+
+    } catch (err) {
+      clearTimeout(stuckTimer);
+
+      // User-friendly error messages
+      let msg = err.message || 'Invalid email or password';
+      if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid credentials')) {
+        msg = 'Incorrect email or password. Please try again.';
+      } else if (msg.toLowerCase().includes('email not confirmed')) {
+        msg = 'Please verify your email before logging in. Check your inbox.';
+      } else if (msg.toLowerCase().includes('too many')) {
+        msg = 'Too many login attempts. Please wait a few minutes and try again.';
+      }
+
+      errorAlert.textContent = msg;
+      errorAlert.style.display = 'block';
+
+      // Always re-enable the button on failure
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Sign In';
+      submitBtn.style.background = '';
+      submitBtn.style.color = '';
     }
   });
 }
