@@ -11,159 +11,7 @@ function getMemberDiscount() {
   return parseInt(localStorage.getItem('xvi_member_discount') || '15');
 }
 
-async function handleBookingPayment(bookingData, app, state, render) {
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session?.user) {
-    window.location.href = '/#/login';
-    return;
-  }
-
-  // Check if user is a member for discount
-  const isMember = localStorage.getItem('xvi_member') === 'true';
-  const discountPercent = getMemberDiscount();
-
-  const baseAmount = bookingData.totalAmount;
-  const discountAmount = discountPercent > 0
-    ? Math.round(baseAmount * (discountPercent / 100)) : 0;
-  const finalAmount = baseAmount - discountAmount;
-
-  if (typeof PaystackPop === 'undefined') {
-    alert('Payment system not loaded. Please refresh and try again.');
-    return;
-  }
-
-  const confirmBtn = document.getElementById('confirm-booking-btn');
-  if (confirmBtn) {
-    confirmBtn.innerHTML = '<span class="material-symbols-outlined spin" style="animation: spin 1s linear infinite;">refresh</span> Processing...';
-    confirmBtn.disabled = true;
-  }
-
-  const handler = PaystackPop.setup({
-    key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-    email: session.user.email,
-    amount: finalAmount * 100,
-    currency: 'NGN',
-    ref: 'XVI_BKG_' + Date.now(),
-    label: bookingData.customerName || session.user.email,
-    metadata: {
-      custom_fields: [
-        { display_name: 'Table', variable_name: 'table', value: bookingData.tableLabel },
-        { display_name: 'Booking Date', variable_name: 'date', value: bookingData.date },
-        { display_name: 'Start Time', variable_name: 'start_time', value: bookingData.startTime },
-        { display_name: 'Booking Type', variable_name: 'type', value: bookingData.reservationType },
-        { display_name: 'Member Discount', variable_name: 'member_discount', value: isMember ? discountPercent + '%' : 'None' }
-      ]
-    },
-
-    onSuccess: async (transaction) => {
-      try {
-        // 1. Create customer record
-        const { data: customer } = await supabase
-          .from('customers')
-          .insert({
-            full_name: bookingData.customerName,
-            phone: bookingData.phone,
-            email: bookingData.email || session.user.email
-          })
-          .select()
-          .single();
-
-        // 2. Calculate end time
-        const startDateTime = new Date(bookingData.date + 'T' + bookingData.startTime);
-        const endDateTime = new Date(startDateTime);
-
-        if (bookingData.reservationType === 'time') {
-          endDateTime.setHours(endDateTime.getHours() + parseInt(bookingData.duration));
-        } else {
-          endDateTime.setMinutes(endDateTime.getMinutes() + parseInt(bookingData.games) * 30);
-        }
-
-        // 3. Save booking to Supabase
-        const { data: booking } = await supabase
-          .from('bookings')
-          .insert({
-            customer_id: customer?.id,
-            table_id: bookingData.tableId,
-            reservation_type: bookingData.reservationType,
-            start_time: startDateTime.toISOString(),
-            end_time: endDateTime.toISOString(),
-            number_of_games: bookingData.reservationType === 'games' ? parseInt(bookingData.games) : null,
-            duration_hours: bookingData.reservationType === 'time' ? parseInt(bookingData.duration) : null,
-            total_amount: finalAmount * 100,
-            payment_status: 'paid',
-            paystack_reference: transaction.reference,
-            status: 'confirmed'
-          })
-          .select()
-          .single();
-
-        const refCode = booking?.reference_code || transaction.reference.slice(-8).toUpperCase();
-
-        // 4. Send confirmation email (non-blocking)
-        sendBookingConfirmationEmail({
-          to: bookingData.email || session.user.email,
-          customerName: bookingData.customerName,
-          referenceCode: refCode,
-          tableLabel: bookingData.tableLabel,
-          date: bookingData.date,
-          startTime: bookingData.startTime,
-          duration: bookingData.reservationType === 'time'
-            ? bookingData.duration + ' hour(s)'
-            : bookingData.games + ' game(s)',
-          totalPaid: finalAmount,
-          isMember: isMember,
-          discount: discountAmount
-        }).catch(e => console.warn('Email non-fatal:', e));
-
-        // 5. Update state and transition to Step 4
-        state.confirmationDetails = {
-          referenceCode: refCode,
-          tableLabel: bookingData.tableLabel,
-          date: bookingData.date,
-          startTime: bookingData.startTime,
-          duration: bookingData.reservationType === 'time'
-            ? bookingData.duration + ' hour(s)'
-            : bookingData.games + ' game(s)',
-          totalPaid: finalAmount,
-          isMember: isMember,
-          discount: discountAmount
-        };
-        state.step = 4;
-        render();
-
-      } catch (err) {
-        console.error('Booking save error:', err);
-        // Still transition to confirmation since payment succeeded
-        state.confirmationDetails = {
-          referenceCode: transaction.reference.slice(-8).toUpperCase(),
-          tableLabel: bookingData.tableLabel,
-          date: bookingData.date,
-          startTime: bookingData.startTime,
-          duration: bookingData.reservationType === 'time'
-            ? bookingData.duration + ' hour(s)'
-            : bookingData.games + ' game(s)',
-          totalPaid: finalAmount,
-          isMember: isMember,
-          discount: discountAmount
-        };
-        state.step = 4;
-        render();
-      }
-    },
-
-    onCancel: () => {
-      if (confirmBtn) {
-        confirmBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span> Confirm & Pay';
-        confirmBtn.disabled = false;
-      }
-    }
-  });
-
-  handler.openIframe();
-}
-
-// ── Table Data ──
+// ─── Table Data ───
 let TABLES = [];
 
 const TIME_SLOTS = [
@@ -172,12 +20,29 @@ const TIME_SLOTS = [
   '8:00 PM', '9:00 PM', '10:00 PM'
 ];
 
-const UNAVAILABLE_SLOTS = ['1:00 PM', '5:00 PM', '9:00 PM'];
-
-export async function renderBookingPage(app, params = {}) {
+export async function renderBookingPage(app) {
   const session = await getSession();
 
-  async function fetchLiveTables() {
+  // State
+  const state = {
+    _session: session,
+    step: 1,
+    bookingType: 'time',       // Default to 'time', can toggle to 'games'
+    duration: 1,               // hours
+    frames: 1,                 // number of games
+    selectedTable: null,
+    date: new Date().toISOString().split('T')[0],
+    timeSlot: null,
+    fullName: session?.user?.user_metadata?.full_name || '',
+    phone: session?.user?.user_metadata?.phone || '',
+    email: session?.user?.email || '',
+    confirmation: null         // Populated after successful payment
+  };
+
+  const STEP_LABELS = ['Booking Type', 'Select Table', 'Review & Pay', 'Confirmation'];
+
+  // Fetch live tables and their availability for a specific date and time slot
+  async function fetchLiveTablesForState() {
     try {
       const { data: tables, error } = await supabase
         .from('snooker_tables')
@@ -185,121 +50,240 @@ export async function renderBookingPage(app, params = {}) {
         .order('table_number', { ascending: true });
       
       if (error) throw error;
-      return tables || [];
+
+      // Get bookings for selected date
+      const { data: bookings } = await supabase
+        .from('reservations')
+        .select('table_id, start_time, end_time')
+        .in('status', ['confirmed'])
+        .eq('date', state.date);
+
+      const bookedTableIds = new Set();
+      if (bookings && state.timeSlot) {
+        const slot24 = formatTo24H(state.timeSlot);
+        bookings.forEach(b => {
+          if (!b.start_time) return;
+          const bStart = b.start_time;
+          let bEnd = b.end_time;
+          if (!bEnd) {
+            const h = parseInt(bStart.split(':')[0]) + 2;
+            bEnd = `${h.toString().padStart(2, '0')}:${bStart.split(':')[1]}:00`;
+          }
+          // Check overlap with the selected slot
+          if (slot24 >= bStart && slot24 < bEnd) {
+            bookedTableIds.add(b.table_id);
+          }
+        });
+      }
+
+      return (tables || []).map(table => ({
+        id: table.id,
+        name: table.label,
+        desc: `Table #${table.table_number}`,
+        hourly: table.hourly_rate / 100,
+        game: table.per_game_rate / 100,
+        vip: table.label?.includes('VIP'),
+        isAvailable: !bookedTableIds.has(table.id),
+        isActive: table.is_active
+      }));
     } catch (e) {
       console.error('Failed to fetch tables:', e);
       return [];
     }
   }
 
-  const dbTables = await fetchLiveTables();
-  TABLES = dbTables.map(t => ({
-    id: t.id,
-    name: t.label || t.name,
-    desc: `Table #${t.table_number}`,
-    hourly: t.hourly_rate / 100,
-    game: t.per_game_rate / 100,
-    vip: (t.label || t.name || '').includes('VIP'),
-    isAvailable: true,
-    isActive: t.is_active
-  }));
+  // Load tables initially
+  async function refreshTables() {
+    TABLES = await fetchLiveTablesForState();
+  }
 
-  const initialTableId = params.tableId ? parseInt(params.tableId) : null;
+  await refreshTables();
 
-  // State
-  const state = {
-    _session: session,
-    step: 1,
-    selectedTable: initialTableId ? TABLES.find(t => t.id === initialTableId) : null,
-    bookingType: 'time',       // 'time' or 'games'
-    duration: '1',             // hours
-    frames: '1',               // number of frames
-    date: new Date().toISOString().split('T')[0],
-    timeSlot: '',
-    fullName: session?.user?.user_metadata?.full_name || '',
-    phone: '',
-    email: session?.user?.email || '',
-    confirmationDetails: null
-  };
-
-  async function updateTableAvailability() {
-    if (!state.date || !state.timeSlot) return;
-
-    try {
-      const { data: bookings, error } = await supabase
-        .from('reservations')
-        .select('table_id, start_time, end_time')
-        .in('status', ['confirmed'])
-        .eq('date', state.date);
-
-      if (error) throw error;
-
-      const userStart = formatTo24H(state.timeSlot);
-      const isTime = state.bookingType === 'time';
-      const qty = parseInt(isTime ? state.duration : state.frames);
-      const startDateTime = new Date(state.date + 'T' + userStart);
-      const endDateTime = new Date(startDateTime);
-
-      if (isTime) {
-        endDateTime.setHours(endDateTime.getHours() + qty);
-      } else {
-        endDateTime.setMinutes(endDateTime.getMinutes() + qty * 30);
-      }
-
-      const userEnd = endDateTime.toTimeString().split(' ')[0];
-
-      const bookedTableIds = new Set();
-      if (bookings) {
-        bookings.forEach(b => {
-          if (!b.start_time) return;
-          const bStart = b.start_time;
-          let bEnd = b.end_time;
-          if (!bEnd) {
-             const h = parseInt(bStart.split(':')[0]) + 2;
-             bEnd = `${h.toString().padStart(2, '0')}:${bStart.split(':')[1]}:00`;
-          }
-          if (userStart < bEnd && userEnd > bStart) {
-            bookedTableIds.add(b.table_id);
-          }
-        });
-      }
-
-      TABLES.forEach(t => {
-        t.isAvailable = !bookedTableIds.has(t.id);
-      });
-    } catch (e) {
-      console.error('Failed to update table availability:', e);
+  // Payment function Lexically defined inside renderBookingPage
+  async function startPaystackPayment(bookingData) {
+    if (typeof PaystackPop === 'undefined') {
+      showToast('Payment system failed to load. Please refresh.', 'error');
+      return;
     }
+
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    if (confirmBtn) {
+      confirmBtn.innerHTML = '<span class="material-symbols-outlined spin" style="animation: spin 1s linear infinite;">refresh</span> Processing...';
+      confirmBtn.disabled = true;
+    }
+
+    const isMember = localStorage.getItem('xvi_member') === 'true';
+    const discountPercent = getMemberDiscount();
+    const baseAmount = bookingData.totalAmount;
+    const discountAmount = discountPercent > 0 ? Math.round(baseAmount * (discountPercent / 100)) : 0;
+    const finalAmount = baseAmount - discountAmount;
+
+    const handler = PaystackPop.setup({
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+      email: bookingData.email,
+      amount: finalAmount * 100,
+      currency: 'NGN',
+      ref: 'XVI_BKG_' + Date.now(),
+      label: bookingData.customerName || bookingData.email,
+      metadata: {
+        custom_fields: [
+          { display_name: 'Table', variable_name: 'table', value: bookingData.tableLabel },
+          { display_name: 'Booking Date', variable_name: 'date', value: bookingData.date },
+          { display_name: 'Start Time', variable_name: 'start_time', value: bookingData.startTime },
+          { display_name: 'Booking Type', variable_name: 'type', value: bookingData.reservationType }
+        ]
+      },
+      onSuccess: async (transaction) => {
+        try {
+          // 1. Create/Update customer
+          const { data: customer } = await supabase
+            .from('customers')
+            .insert({
+              full_name: bookingData.customerName,
+              phone: bookingData.phone,
+              email: bookingData.email
+            })
+            .select()
+            .single();
+
+          // 2. End time computation
+          const startDateTime = new Date(bookingData.date + 'T' + bookingData.startTime);
+          const endDateTime = new Date(startDateTime);
+
+          if (bookingData.reservationType === 'time') {
+            endDateTime.setHours(endDateTime.getHours() + parseInt(bookingData.duration));
+          } else {
+            endDateTime.setMinutes(endDateTime.getMinutes() + parseInt(bookingData.games) * 30);
+          }
+
+          // 3. Save booking to DB
+          const { data: booking } = await supabase
+            .from('bookings')
+            .insert({
+              customer_id: customer?.id,
+              table_id: bookingData.tableId,
+              reservation_type: bookingData.reservationType,
+              start_time: startDateTime.toISOString(),
+              end_time: endDateTime.toISOString(),
+              number_of_games: bookingData.reservationType === 'games' ? parseInt(bookingData.games) : null,
+              duration_hours: bookingData.reservationType === 'time' ? parseInt(bookingData.duration) : null,
+              total_amount: finalAmount * 100,
+              payment_status: 'paid',
+              paystack_reference: transaction.reference,
+              status: 'confirmed'
+            })
+            .select()
+            .single();
+
+          const codeSuffix = booking?.reference_code || transaction.reference.slice(-8).toUpperCase();
+          const uniqueBookingCode = `XVI-${new Date(bookingData.date).getFullYear()}-${codeSuffix}`;
+
+          // Send email
+          sendBookingConfirmationEmail({
+            to: bookingData.email,
+            customerName: bookingData.customerName,
+            referenceCode: uniqueBookingCode,
+            tableLabel: bookingData.tableLabel,
+            date: bookingData.date,
+            startTime: bookingData.startTime,
+            duration: bookingData.reservationType === 'time'
+              ? bookingData.duration + ' hour(s)'
+              : bookingData.games + ' game(s)',
+            totalPaid: finalAmount,
+            isMember: isMember,
+            discount: discountAmount
+          }).catch(e => console.warn('Confirmation email error:', e));
+
+          // Set state to Step 4
+          state.confirmation = {
+            bookingCode: uniqueBookingCode,
+            tableLabel: bookingData.tableLabel,
+            date: bookingData.date,
+            startTime: bookingData.startTime,
+            duration: bookingData.reservationType === 'time'
+              ? bookingData.duration + ' hour(s)'
+              : bookingData.games + ' game(s)',
+            totalPaid: finalAmount,
+            isMember: isMember,
+            discount: discountAmount
+          };
+          state.step = 4;
+          render();
+          showToast('Booking Confirmed!', 'success');
+        } catch (err) {
+          console.error('Booking confirmation save error:', err);
+          // Fallback success state
+          const codeSuffix = transaction.reference.slice(-8).toUpperCase();
+          const uniqueBookingCode = `XVI-${new Date().getFullYear()}-${codeSuffix}`;
+          state.confirmation = {
+            bookingCode: uniqueBookingCode,
+            tableLabel: bookingData.tableLabel,
+            date: bookingData.date,
+            startTime: bookingData.startTime,
+            duration: bookingData.reservationType === 'time'
+              ? bookingData.duration + ' hour(s)'
+              : bookingData.games + ' game(s)',
+            totalPaid: finalAmount,
+            isMember: isMember,
+            discount: discountAmount
+          };
+          state.step = 4;
+          render();
+        }
+      },
+      onCancel: () => {
+        if (confirmBtn) {
+          confirmBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span> Confirm & Pay &rarr;';
+          confirmBtn.disabled = false;
+        }
+      }
+    });
+
+    handler.openIframe();
   }
 
   function render() {
     app.innerHTML = `
       ${renderHeader(session, '')}
-      <main class="page-content">
-        <section class="booking-wizard">
-          <div class="wizard-container">
+      <main class="page-content" style="background: #061106; min-height: calc(100vh - 160px); color: #fff;">
+        <section class="booking-wizard" style="max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem;">
+          <div class="wizard-container" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 2.5rem; backdrop-filter: blur(10px); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+            
+            ${state.step < 4 ? `
+              <!-- Progress Bar -->
+              <div class="wizard-progress" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; position: relative;">
+                ${STEP_LABELS.map((label, index) => {
+                  const stepNum = index + 1;
+                  const isActive = state.step === stepNum;
+                  const isCompleted = state.step > stepNum;
+                  return `
+                    <div class="progress-step" style="display: flex; flex-direction: column; align-items: center; z-index: 2; flex: 1;">
+                      <div class="step-circle" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.95rem; transition: all 0.3s;
+                        background: ${isCompleted ? '#1a5c1a' : isActive ? '#c9a84c' : 'rgba(255,255,255,0.06)'};
+                        color: ${isCompleted || isActive ? '#fff' : 'rgba(255,255,255,0.4)'};
+                        border: 2px solid ${isCompleted ? '#1a5c1a' : isActive ? '#c9a84c' : 'rgba(255,255,255,0.1)'};
+                        box-shadow: ${isActive ? '0 0 15px rgba(201, 168, 76, 0.4)' : 'none'};">
+                        ${isCompleted ? '✓' : stepNum}
+                      </div>
+                      <span class="step-label" style="margin-top: 0.75rem; font-size: 0.8rem; font-weight: ${isActive ? '600' : '400'};
+                        color: ${isActive ? '#c9a84c' : isCompleted ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)'};">
+                        ${label}
+                      </span>
+                    </div>
+                  `;
+                }).join('')}
+                <div class="progress-line-bg" style="position: absolute; top: 20px; left: 10%; right: 10%; height: 2px; background: rgba(255,255,255,0.06); z-index: 1;"></div>
+                <div class="progress-line-fill" style="position: absolute; top: 20px; left: 10%; width: ${((state.step - 1) / 3) * 80}%; height: 2px; background: #1a5c1a; z-index: 1; transition: width 0.4s ease;"></div>
+              </div>
+              <p style="text-align: center; color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2.5rem;">Step ${state.step} of 4</p>
+            ` : ''}
 
-            <!-- Progress Bar -->
-            <div class="wizard-progress" id="booking-progress">
-              ${[1, 2, 3, 4].map(s => `
-                <div class="progress-step ${state.step >= s ? 'active' : ''} ${state.step > s ? 'completed' : ''}">
-                  <div class="step-circle">
-                    ${state.step > s ? '<span class="material-symbols-outlined" style="font-size:1rem;">check</span>' : s}
-                  </div>
-                  <span class="step-label">
-                    ${s === 1 ? 'Booking Type' : s === 2 ? 'Select Table' : s === 3 ? 'Summary & Payment' : 'Confirmation'}
-                  </span>
-                </div>
-                ${s < 4 ? '<div class="progress-line ' + (state.step > s ? 'filled' : '') + '"></div>' : ''}
-              `).join('')}
-            </div>
-
-            <!-- Step Content -->
+            <!-- Step Body -->
             <div class="wizard-body">
-              ${state.step === 1 ? renderStep1(state) : ''}
-              ${state.step === 2 ? renderStep2(state) : ''}
-              ${state.step === 3 ? renderStep3(state) : ''}
-              ${state.step === 4 ? renderStep4(state) : ''}
+              ${state.step === 1 ? renderStep1() : ''}
+              ${state.step === 2 ? renderStep2() : ''}
+              ${state.step === 3 ? renderStep3() : ''}
+              ${state.step === 4 ? renderStep4() : ''}
             </div>
 
           </div>
@@ -308,602 +292,643 @@ export async function renderBookingPage(app, params = {}) {
       ${renderFooter()}
     `;
 
-    attachHandlers(state, render, updateTableAvailability);
+    attachHandlers();
   }
 
-  render();
-}
+  // ─── STEP 1: CHOOSE BOOKING TYPE ───
+  function renderStep1() {
+    const isTime = state.bookingType === 'time';
+    const currentQty = isTime ? state.duration : state.frames;
+    const maxQty = isTime ? 10 : 20;
 
-// ═══════════════════════════════════════
-// STEP 1 — Choose Booking Type
-// ═══════════════════════════════════════
-function renderStep1(state) {
-  return `
-    <div class="step-content">
-      <div class="step-header">
-        <span class="gold-dash"></span>
-        <p class="section-label">Step 1 of 4</p>
-        <h2 class="wizard-title">Choose Booking Type</h2>
-      </div>
-
-      <div class="booking-type-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-        <button class="booking-type-card ${state.bookingType === 'time' ? 'active' : ''}" 
-                id="select-type-time"
-                style="padding: 2rem; border-radius: 12px; background: ${state.bookingType === 'time' ? 'rgba(105,223,94,0.05)' : 'var(--surface-container-low)'}; border: 2px solid ${state.bookingType === 'time' ? 'var(--primary)' : 'var(--outline-variant)'}; color: white; cursor: pointer; text-align: center; transition: all 0.2s;">
-          <span class="material-symbols-outlined" style="font-size: 3rem; color: ${state.bookingType === 'time' ? 'var(--primary)' : 'inherit'}; margin-bottom: 0.5rem; display: block;">schedule</span>
-          <span style="font-weight: 700; font-size: 1.1rem; display: block;">Book by Time</span>
-          <span style="font-size: 0.8rem; opacity: 0.7; display: block; margin-top: 0.25rem;">Reserve tables for a set duration</span>
-        </button>
-
-        <button class="booking-type-card ${state.bookingType === 'games' ? 'active' : ''}" 
-                id="select-type-games"
-                style="padding: 2rem; border-radius: 12px; background: ${state.bookingType === 'games' ? 'rgba(105,223,94,0.05)' : 'var(--surface-container-low)'}; border: 2px solid ${state.bookingType === 'games' ? 'var(--primary)' : 'var(--outline-variant)'}; color: white; cursor: pointer; text-align: center; transition: all 0.2s;">
-          <span class="material-symbols-outlined" style="font-size: 3rem; color: ${state.bookingType === 'games' ? 'var(--primary)' : 'inherit'}; margin-bottom: 0.5rem; display: block;">sports_score</span>
-          <span style="font-weight: 700; font-size: 1.1rem; display: block;">Book by Games</span>
-          <span style="font-size: 0.8rem; opacity: 0.7; display: block; margin-top: 0.25rem;">Reserve tables for a number of frames</span>
-        </button>
-      </div>
-
-      ${state.bookingType === 'time' ? `
-        <div class="duration-selector-wrapper" style="margin-bottom: 2rem;">
-          <label class="wizard-field-label" style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--gold);">Select Duration</label>
-          <select id="duration-select" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;">
-            ${Array.from({length: 10}, (_, i) => i + 1).map(h => `<option value="${h}" ${state.duration == h ? 'selected' : ''}>${h} Hour${h > 1 ? 's' : ''}</option>`).join('')}
-          </select>
-        </div>
-      ` : `
-        <div class="frames-selector-wrapper" style="margin-bottom: 2rem;">
-          <label class="wizard-field-label" style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--gold);">Select Number of Frames</label>
-          <select id="frames-select" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;">
-            ${Array.from({length: 20}, (_, i) => i + 1).map(f => `<option value="${f}" ${state.frames == f ? 'selected' : ''}>${f} Frame${f > 1 ? 's' : ''}</option>`).join('')}
-          </select>
-        </div>
-      `}
-
-      <div class="wizard-actions" style="display: flex; justify-content: flex-end; margin-top: 2rem;">
-        <button class="btn-wizard-next" id="step1-next" style="padding: 0.85rem 2rem; background: #1a5c1a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-          Next
-          <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_forward</span>
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-// ═══════════════════════════════════════
-// STEP 2 — Select Table & Session
-// ═══════════════════════════════════════
-function renderStep2(state) {
-  const isTime = state.bookingType === 'time';
-  return `
-    <div class="step-content">
-      <div class="step-header">
-        <span class="gold-dash"></span>
-        <p class="section-label">Step 2 of 4</p>
-        <h2 class="wizard-title">Select Table & Session</h2>
-      </div>
-
-      <div class="session-picker-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-        <!-- Date Picker -->
-        <div class="date-section">
-          <label class="wizard-field-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--gold);">Select Date</label>
-          <input type="date" id="booking-date" class="wizard-date-input"
-            value="${state.date}"
-            min="${new Date().toISOString().split('T')[0]}" 
-            style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;" />
+    return `
+      <div class="step-content">
+        <div class="step-header" style="text-align: center; margin-bottom: 2.5rem;">
+          <h2 style="font-family: 'Noto Serif', serif; color: #c9a84c; font-size: 2.25rem; margin: 0 0 0.5rem;">Choose Booking Type</h2>
+          <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 0.95rem;">Select your preferred play format and session size</p>
         </div>
 
-        <!-- Time Slot Picker -->
-        <div class="time-section">
-          <label class="wizard-field-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--gold);">Select Start Time</label>
-          <select id="booking-time-slot" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;">
-            <option value="" ${!state.timeSlot ? 'selected' : ''}>-- Choose a Time Slot --</option>
-            ${TIME_SLOTS.map(slot => {
-              const unavailable = UNAVAILABLE_SLOTS.includes(slot);
-              return `<option value="${slot}" ${state.timeSlot === slot ? 'selected' : ''} ${unavailable ? 'disabled' : ''}>${slot}${unavailable ? ' (Booked)' : ''}</option>`;
-            }).join('')}
-          </select>
-        </div>
-      </div>
+        <div style="display: flex; gap: 1.5rem; margin-bottom: 2.5rem;">
+          <!-- Book by Time Button -->
+          <button class="type-btn" data-type="time" style="flex: 1; background: ${isTime ? 'rgba(201, 168, 76, 0.08)' : 'rgba(255, 255, 255, 0.02)'};
+            border: 2px solid ${isTime ? '#c9a84c' : 'rgba(255, 255, 255, 0.08)'};
+            padding: 2.5rem 1.5rem; border-radius: 16px; color: #fff; cursor: pointer; text-align: center; transition: all 0.3s;
+            box-shadow: ${isTime ? '0 10px 25px rgba(201, 168, 76, 0.15)' : 'none'};">
+            <span class="material-symbols-outlined" style="font-size: 3rem; color: #c9a84c; display: block; margin-bottom: 1rem;">schedule</span>
+            <strong style="font-size: 1.25rem; display: block; margin-bottom: 0.5rem;">Book by Time</strong>
+            <span style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Reserve the table hourly (best for practice)</span>
+          </button>
 
-      <!-- Table Selection Section -->
-      <div class="table-selection-section" style="margin-bottom: 2rem;">
-        <h3 class="wizard-subtitle" style="margin-bottom: 1rem; color: white;">Available Tables</h3>
-        
-        ${!state.timeSlot ? `
-          <div style="text-align: center; padding: 3rem; background: var(--surface-container-low); border-radius: 12px; border: 1px dashed var(--outline-variant);">
-            <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--on-surface-variant); opacity: 0.5; margin-bottom: 0.5rem; display: block;">info</span>
-            <p style="color: var(--on-surface-variant); margin: 0;">Please select a date and start time slot to view table availability.</p>
+          <!-- Book by Games Button -->
+          <button class="type-btn" data-type="games" style="flex: 1; background: ${!isTime ? 'rgba(201, 168, 76, 0.08)' : 'rgba(255, 255, 255, 0.02)'};
+            border: 2px solid ${!isTime ? '#c9a84c' : 'rgba(255, 255, 255, 0.08)'};
+            padding: 2.5rem 1.5rem; border-radius: 16px; color: #fff; cursor: pointer; text-align: center; transition: all 0.3s;
+            box-shadow: ${!isTime ? '0 10px 25px rgba(201, 168, 76, 0.15)' : 'none'};">
+            <span class="material-symbols-outlined" style="font-size: 3rem; color: #c9a84c; display: block; margin-bottom: 1rem;">sports_score</span>
+            <strong style="font-size: 1.25rem; display: block; margin-bottom: 0.5rem;">Book by Games</strong>
+            <span style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Reserve by number of frames/games</span>
+          </button>
+        </div>
+
+        <!-- Quantity Adjuster -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 2.5rem;">
+          <p style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 0; margin-bottom: 1.25rem;">
+            ${isTime ? 'Select Duration (Hours)' : 'Select Number of Frames'}
+          </p>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 2.5rem;">
+            <button id="qty-dec" style="width: 50px; height: 50px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.5rem; cursor: pointer; transition: all 0.2s;" ${currentQty <= 1 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>−</button>
+            <div style="min-width: 120px;">
+              <span id="qty-value" style="font-size: 3.5rem; font-weight: 700; color: #c9a84c; display: block; line-height: 1;">${currentQty}</span>
+              <span style="font-size: 0.9rem; color: rgba(255,255,255,0.4); display: block; margin-top: 0.25rem;">${isTime ? (currentQty === 1 ? 'Hour' : 'Hours') : (currentQty === 1 ? 'Frame' : 'Frames')}</span>
+            </div>
+            <button id="qty-inc" style="width: 50px; height: 50px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.5rem; cursor: pointer; transition: all 0.2s;" ${currentQty >= maxQty ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>+</button>
           </div>
-        ` : `
-          <div class="booking-table-stack" style="display: flex; flex-direction: column; gap: 1rem;">
-            ${TABLES.map(t => {
-              const isSelected = state.selectedTable?.id === t.id;
-              const isAvailable = t.isAvailable && t.isActive;
-              
-              let statusBadge = '';
-              let statusMsg = '';
-              if (!t.isActive) {
-                statusBadge = `<span style="font-size: 0.75rem; color: #757575; background: rgba(117,117,117,0.15); padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold;">✕ Inactive</span>`;
-                statusMsg = `<p style="color:#757575; font-size:0.75rem; margin-top:0.25rem;">Table is currently out of service</p>`;
-              } else if (!t.isAvailable) {
-                statusBadge = `<span style="font-size: 0.75rem; color: #ef4444; background: rgba(239,68,68,0.15); padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold;">✕ Booked</span>`;
-                statusMsg = `<p style="color:#ef4444; font-size:0.75rem; margin-top:0.25rem;">Unavailable for the selected time slot</p>`;
-              } else {
-                statusBadge = `<span style="font-size: 0.75rem; color: #4caf50; background: rgba(76,175,80,0.15); padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: bold;">✓ Available</span>`;
-              }
+        </div>
 
-              const displayPrice = isTime ? t.hourly : t.game;
+        <div style="display: flex; justify-content: flex-end;">
+          <button class="btn-wizard-next" id="step1-next" style="background: #c9a84c; color: #061106; border: none; padding: 0.9rem 2.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(201, 168, 76, 0.25);">
+            Next Step <span class="material-symbols-outlined" style="font-size: 1.15rem;">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ─── STEP 2: SELECT TABLE ───
+  function renderStep2() {
+    const isTime = state.bookingType === 'time';
+    const qty = isTime ? state.duration : state.frames;
+    const isMember = localStorage.getItem('xvi_member') === 'true';
+    const discountPercent = getMemberDiscount();
+
+    return `
+      <div class="step-content">
+        <div class="step-header" style="text-align: center; margin-bottom: 2.5rem;">
+          <h2 style="font-family: 'Noto Serif', serif; color: #c9a84c; font-size: 2.25rem; margin: 0 0 0.5rem;">Select Snooker Table</h2>
+          <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 0.95rem;">Choose a date, time slot, and pick from our available professional tables</p>
+        </div>
+
+        <!-- Date & Time Slot Selectors -->
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 1.75rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Select Date</label>
+            <input type="date" id="booking-date" value="${state.date}" min="${new Date().toISOString().split('T')[0]}"
+              style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.9rem; font-family: inherit; outline: none; transition: border-color 0.2s;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">Select Start Time</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 0.4rem;">
+              ${TIME_SLOTS.map(slot => {
+                const isSelected = state.timeSlot === slot;
+                return `
+                  <button class="slot-btn" data-slot="${slot}" style="padding: 0.5rem; font-size: 0.78rem; font-family: inherit; font-weight: 500; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+                    border: 1px solid ${isSelected ? '#c9a84c' : 'rgba(255,255,255,0.12)'};
+                    background: ${isSelected ? 'rgba(201, 168, 76, 0.15)' : 'rgba(255,255,255,0.02)'};
+                    color: ${isSelected ? '#c9a84c' : '#fff'};">
+                    ${slot}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tables List -->
+        <div style="margin-bottom: 2.5rem;">
+          <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 1.25rem; font-weight: 600;">Available Tables</h3>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${TABLES.map(table => {
+              const isSelected = state.selectedTable?.id === table.id;
+              const isAvailable = table.isAvailable && table.isActive;
+              
+              // Calculate Price based on Step 1 selection
+              const basePrice = isTime ? table.hourly * qty : table.game * qty;
+              const discountAmount = isMember ? Math.round(basePrice * (discountPercent / 100)) : 0;
+              const totalPrice = basePrice - discountAmount;
 
               return `
-                <div class="booking-table-card table-select-card ${t.vip ? 'vip' : ''} ${isSelected ? 'selected' : ''}" 
-                     data-id="${t.id}"
-                     data-label="${t.name}"
-                     data-hourly="${t.hourly}"
-                     data-game="${t.game}"
-                     style="padding: 1.25rem; border-radius: 12px; background: ${isSelected ? 'rgba(26,92,26,0.08)' : 'var(--surface)'}; border: ${isSelected ? '2px solid #1a5c1a' : '1px solid var(--outline-variant)'}; display: flex; align-items: center; justify-content: space-between; cursor: ${isAvailable ? 'pointer' : 'not-allowed'}; opacity: ${isAvailable ? '1' : '0.55'}; transition: all 0.2s;">
+                <div class="table-card" data-id="${table.id}" style="border: 2px solid ${isSelected ? '#c9a84c' : 'rgba(255, 255, 255, 0.08)'};
+                  background: ${isSelected ? 'rgba(201, 168, 76, 0.05)' : isAvailable ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0,0,0,0.15)'};
+                  opacity: ${isAvailable ? '1' : '0.45'};
+                  cursor: ${isAvailable ? 'pointer' : 'not-allowed'};
+                  padding: 1.5rem 1.75rem; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s;">
                   
-                  <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 48px; height: 48px; border-radius: 8px; background: ${t.vip ? 'rgba(201,168,76,0.15)' : 'rgba(105,223,94,0.1)'}; display: flex; align-items: center; justify-content: center;">
-                      <span class="material-symbols-outlined" style="color: ${t.vip ? '#c9a84c' : '#69df5e'};">${t.vip ? 'stars' : 'sports'}</span>
+                  <div style="display: flex; align-items: center; gap: 1.25rem;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                      background: ${table.vip ? 'rgba(201, 168, 76, 0.15)' : 'rgba(255,255,255,0.05)'};
+                      color: ${table.vip ? '#c9a84c' : '#fff'};">
+                      <span class="material-symbols-outlined" style="font-size: 1.5rem;">${table.vip ? 'stars' : 'sports'}</span>
                     </div>
                     <div>
-                      <h4 style="margin: 0; font-size: 1.1rem; color: white; display: flex; align-items: center; gap: 0.5rem;">
-                        ${t.name}
-                        ${t.vip ? '<span style="font-size: 0.65rem; background: #c9a84c; color: #000; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700;">VIP</span>' : ''}
+                      <h4 style="margin: 0; font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+                        ${table.name}
+                        ${table.vip ? '<span style="font-size: 0.65rem; background: #c9a84c; color: #061106; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; text-transform: uppercase;">VIP</span>' : ''}
                       </h4>
-                      <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: var(--on-surface-variant);">${t.desc}</p>
-                      ${statusMsg}
+                      <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: rgba(255,255,255,0.5);">${table.desc}</p>
                     </div>
                   </div>
 
-                  <div style="display: flex; align-items: center; gap: 2rem;">
+                  <div style="display: flex; align-items: center; gap: 2.5rem;">
+                    <!-- Price Info -->
                     <div style="text-align: right;">
-                      <span style="font-size: 0.75rem; color: var(--on-surface-variant); display: block;">Price (${isTime ? 'Hourly' : 'per Game'})</span>
-                      <span style="font-size: 1.25rem; font-weight: 700; color: #c9a84c;">₦${calculatePrice(displayPrice).toLocaleString()}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                      ${statusBadge}
-                      ${isAvailable ? `
-                        <input type="radio" name="table_selection" style="width: 1.25rem; height: 1.25rem; accent-color: #1a5c1a;" ${isSelected ? 'checked' : ''} />
+                      <div style="font-size: 0.75rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Price for ${qty} ${isTime ? (qty === 1 ? 'Hour' : 'Hours') : (qty === 1 ? 'Frame' : 'Frames')}</div>
+                      <div style="font-size: 1.4rem; font-weight: 700; color: #c9a84c; margin-top: 0.15rem;">
+                        ₦${totalPrice.toLocaleString()}
+                      </div>
+                      ${isMember ? `
+                        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.3); text-decoration: line-through;">
+                          ₦${basePrice.toLocaleString()}
+                        </div>
                       ` : ''}
                     </div>
+
+                    <!-- Availability Status -->
+                    <div style="text-align: center; min-width: 100px;">
+                      ${isAvailable ? `
+                        <span style="font-size: 0.75rem; color: #4caf50; background: rgba(76,175,80,0.15); padding: 0.35rem 0.75rem; border-radius: 20px; font-weight: bold; display: inline-block;">● Available</span>
+                      ` : `
+                        <span style="font-size: 0.75rem; color: #f44336; background: rgba(244,67,54,0.15); padding: 0.35rem 0.75rem; border-radius: 20px; font-weight: bold; display: inline-block;">✕ Booked</span>
+                      `}
+                    </div>
+
+                    <!-- Select indicator -->
+                    ${isAvailable ? `
+                      <div style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid ${isSelected ? '#c9a84c' : 'rgba(255,255,255,0.3)'};
+                        background: ${isSelected ? '#c9a84c' : 'transparent'}; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                        ${isSelected ? '<span class="material-symbols-outlined" style="font-size: 0.9rem; color: #061106; font-weight: bold;">check</span>' : ''}
+                      </div>
+                    ` : ''}
                   </div>
+
                 </div>
               `;
             }).join('')}
           </div>
-        `}
-      </div>
+        </div>
 
-      <!-- Actions -->
-      <div class="wizard-actions" style="display: flex; justify-content: space-between; margin-top: 2rem;">
-        <button class="btn-wizard-back" id="step2-back" style="padding: 0.85rem 2rem; background: transparent; border: 1px solid var(--outline-variant); color: white; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-          <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_back</span>
-          Back
-        </button>
-        <button class="btn-wizard-next" id="step2-next" 
-                style="padding: 0.85rem 2rem; background: #1a5c1a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; ${(!state.selectedTable || !state.timeSlot) ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
-                ${(!state.selectedTable || !state.timeSlot) ? 'disabled' : ''}>
-          Next
-          <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_forward</span>
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-// ═══════════════════════════════════════
-// STEP 3 — Summary & Payment
-// ═══════════════════════════════════════
-function renderStep3(state) {
-  const table = state.selectedTable;
-  const isTime = state.bookingType === 'time';
-  const qty = parseInt(isTime ? state.duration : state.frames);
-  const unitLabel = isTime ? `${qty} Hour${qty > 1 ? 's' : ''}` : `${qty} Frame${qty > 1 ? 's' : ''}`;
-  
-  let estimatedDurationHtml = '';
-  if (!isTime) {
-    const minMins = qty * 25;
-    const maxMins = qty * 30;
-    const formatMins = (m) => {
-      const hrs = Math.floor(m / 60);
-      const rem = m % 60;
-      if (hrs === 0) return `${rem} mins`;
-      if (rem === 0) return `${hrs} hr${hrs>1?'s':''}`;
-      return `${hrs} hr ${rem} mins`;
-    };
-    estimatedDurationHtml = `
-      <div class="osc-row" style="margin-top:-0.5rem;margin-bottom:0.5rem; display: flex; justify-content: space-between;">
-        <span class="osc-label" style="font-size:0.75rem;color:var(--outline);">Estimated duration</span>
-        <span class="osc-value" style="font-size:0.75rem;color:var(--outline);">~${formatMins(minMins)} - ${formatMins(maxMins)}</span>
+        <div style="display: flex; justify-content: space-between;">
+          <button class="btn-wizard-back" id="step2-back" style="background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 0.85rem 1.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+            <span class="material-symbols-outlined" style="font-size: 1.15rem;">arrow_back</span> Go Back
+          </button>
+          <button class="btn-wizard-next" id="step2-next" ${!state.selectedTable || !state.timeSlot ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''} style="background: #c9a84c; color: #061106; border: none; padding: 0.9rem 2.2rem; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(201, 168, 76, 0.25);">
+            Next Step <span class="material-symbols-outlined" style="font-size: 1.15rem;">arrow_forward</span>
+          </button>
+        </div>
       </div>
     `;
   }
-  
-  const isMember = localStorage.getItem('xvi_member') === 'true';
-  const discountPercent = getMemberDiscount();
-  const basePrice = isTime ? (table.hourly * qty) : (table.game * qty);
-  const discountAmount = discountPercent > 0 ? Math.round(basePrice * (discountPercent / 100)) : 0;
-  const totalPrice = basePrice - discountAmount;
 
-  const dateFormatted = new Date(state.date + 'T00:00:00').toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
+  // ─── STEP 3: SUMMARY & DETAILS ───
+  function renderStep3() {
+    const table = state.selectedTable;
+    const isTime = state.bookingType === 'time';
+    const qty = isTime ? state.duration : state.frames;
+    const isMember = localStorage.getItem('xvi_member') === 'true';
+    const discountPercent = getMemberDiscount();
+    const basePrice = isTime ? table.hourly * qty : table.game * qty;
+    const discountAmount = isMember ? Math.round(basePrice * (discountPercent / 100)) : 0;
+    const totalPrice = basePrice - discountAmount;
 
-  return `
-    <div class="step-content">
-      <div class="step-header">
-        <span class="gold-dash"></span>
-        <p class="section-label">Step 3 of 4</p>
-        <h2 class="wizard-title">Summary & Payment</h2>
-      </div>
+    const formattedDate = new Date(state.date + 'T00:00:00').toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
 
-      <div class="step3-layout" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2.5rem; margin-bottom: 2rem;">
-        <!-- Left: Form -->
-        <div class="details-form">
-          <h3 class="wizard-subtitle" style="margin-bottom: 1.5rem; color: white;">Your Details</h3>
-          <div class="wizard-input-group">
-            <label>Full Name</label>
-            <input type="text" id="input-name" class="wizard-input" placeholder="Enter your full name" value="${state.fullName}" />
-          </div>
-          <div class="wizard-input-group">
-            <label>Phone Number</label>
-            <input type="tel" id="input-phone" class="wizard-input" placeholder="+234 800 000 0000" value="${state.phone}" />
-          </div>
-          <div class="wizard-input-group">
-            <label>Email Address</label>
-            <input type="email" id="input-email" class="wizard-input" placeholder="you@example.com" value="${state.email}" />
-          </div>
+    return `
+      <div class="step-content">
+        <div class="step-header" style="text-align: center; margin-bottom: 2.5rem;">
+          <h2 style="font-family: 'Noto Serif', serif; color: #c9a84c; font-size: 2.25rem; margin: 0 0 0.5rem;">Summary & Details</h2>
+          <p style="color: rgba(255,255,255,0.6); margin: 0; font-size: 0.95rem;">Enter your contact information and review your booking details before checkout</p>
         </div>
 
-        <!-- Right: Order Summary -->
-        <div class="order-summary-card" id="order-summary" style="background: var(--surface-container-low); border: 1px solid rgba(201, 168, 76, 0.15); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
-            <div class="osc-header" style="display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--outline-variant); padding-bottom: 0.75rem; margin-bottom: 1rem;">
-              <span class="material-symbols-outlined" style="color:var(--gold);">receipt_long</span>
-              <h3 style="margin: 0; font-size: 1rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em;">Order Summary</h3>
+        <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 2rem; margin-bottom: 2.5rem;">
+          <!-- Left: User Details Form -->
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <h3 style="font-size: 1.1rem; color: #fff; margin: 0; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+              <span class="material-symbols-outlined" style="color: #c9a84c;">person</span> Contact Information
+            </h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <label for="input-name" style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Full Name</label>
+              <input type="text" id="input-name" placeholder="Enter your full name" value="${state.fullName}"
+                style="width: 100%; padding: 0.85rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s;" />
             </div>
-            <div class="osc-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
-              <div class="osc-row" style="display: flex; justify-content: space-between;">
-                <span class="osc-label" style="color: var(--on-surface-variant);">Table</span>
-                <span class="osc-value" style="color: white; font-weight: 600;">${table.name}</span>
+
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <label for="input-phone" style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Phone Number</label>
+              <input type="tel" id="input-phone" placeholder="e.g. +234 800 000 0000" value="${state.phone}"
+                style="width: 100%; padding: 0.85rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s;" />
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <label for="input-email" style="font-size: 0.8rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Email Address</label>
+              <input type="email" id="input-email" placeholder="you@example.com" value="${state.email}"
+                style="width: 100%; padding: 0.85rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s;" />
+            </div>
+          </div>
+
+          <!-- Right: Order Summary Ticket -->
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.75rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="font-size: 1.1rem; color: #fff; margin: 0 0 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <span class="material-symbols-outlined" style="color: #c9a84c;">receipt_long</span> Order Summary
+              </h3>
+
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                  <span style="color: rgba(255,255,255,0.5);">Selected Table</span>
+                  <span style="font-weight: 600; color: #fff;">${table.name}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                  <span style="color: rgba(255,255,255,0.5);">Booking Date</span>
+                  <span style="color: #fff;">${formattedDate}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                  <span style="color: rgba(255,255,255,0.5);">Start Time</span>
+                  <span style="color: #fff;">${state.timeSlot}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                  <span style="color: rgba(255,255,255,0.5);">Booking Type</span>
+                  <span style="text-transform: capitalize; color: #fff;">By ${state.bookingType}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                  <span style="color: rgba(255,255,255,0.5);">${isTime ? 'Duration' : 'Frames'}</span>
+                  <span style="color: #fff; font-weight: 600;">${qty} ${isTime ? (qty === 1 ? 'Hour' : 'Hours') : (qty === 1 ? 'Frame' : 'Frames')}</span>
+                </div>
+                
+                <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0.5rem 0;"></div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                  <span style="color: rgba(255,255,255,0.5);">Base Amount</span>
+                  <span style="color: #fff;">₦${basePrice.toLocaleString()}</span>
+                </div>
+
+                ${isMember ? `
+                  <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #4caf50;">
+                    <span>👑 Member Discount (${discountPercent}%)</span>
+                    <span>-₦${discountAmount.toLocaleString()}</span>
+                  </div>
+                ` : ''}
               </div>
-              <div class="osc-row" style="display: flex; justify-content: space-between;">
-                <span class="osc-label" style="color: var(--on-surface-variant);">Date</span>
-                <span class="osc-value" style="color: white;">${dateFormatted}</span>
-              </div>
-              <div class="osc-row" style="display: flex; justify-content: space-between;">
-                <span class="osc-label" style="color: var(--on-surface-variant);">Time</span>
-                <span class="osc-value" style="color: white;">${state.timeSlot}</span>
-              </div>
-              <div class="osc-row" style="display: flex; justify-content: space-between;">
-                <span class="osc-label" style="color: var(--on-surface-variant);">${isTime ? 'Duration' : 'Games'}</span>
-                <span class="osc-value" style="color: white;">${unitLabel}</span>
-              </div>
-              ${estimatedDurationHtml}
-              <div class="osc-row" style="display: flex; justify-content: space-between; border-top: 1px dashed var(--outline-variant); padding-top: 0.75rem; margin-top: 0.5rem;">
-                <span class="osc-label" style="color: var(--on-surface-variant);">Base Price</span>
-                <span class="osc-value" style="color: white; ${isMember ? 'text-decoration:line-through;opacity:0.6;' : ''}">${formatCurrency(basePrice)}</span>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.15);">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600; color: rgba(255,255,255,0.7); font-size: 1.05rem;">Total to Pay</span>
+                <span style="font-size: 1.65rem; font-weight: 800; color: #c9a84c;">₦${totalPrice.toLocaleString()}</span>
               </div>
               ${isMember ? `
-              <div class="osc-row" style="display: flex; justify-content: space-between; background:rgba(105,223,94,0.07); border-radius:6px; padding:0.4rem 0.5rem; margin-top: 0.25rem;">
-                <span class="osc-label" style="color:#69df5e;">👑 Member Discount (${discountPercent}%)</span>
-                <span class="osc-value" style="color:#69df5e;">−${formatCurrency(discountAmount)}</span>
-              </div>
-              ` : ''}
+                <div style="text-align: center; color: #4caf50; font-size: 0.72rem; font-weight: 600; margin-top: 0.5rem;">✓ XVI Membership discount applied!</div>
+              ` : `
+                <div style="text-align: center; margin-top: 0.5rem;">
+                  <a href="/#/membership" style="color: #c9a84c; font-size: 0.72rem; text-decoration: underline;">👑 Join membership & save 15%</a>
+                </div>
+              `}
             </div>
-          </div>
-          
-          <div style="margin-top: 1.5rem; border-top: 1px solid var(--outline-variant); padding-top: 1rem;">
-            <div class="osc-total" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <span class="osc-total-label" style="color: white; font-weight: 700; font-size: 1.1rem;">Total</span>
-              <span class="osc-total-value" style="color: #c9a84c; font-weight: 800; font-size: 1.4rem;">${formatCurrency(totalPrice)}</span>
-            </div>
-            
-            ${isMember ? `
-            <div style="text-align:center; margin-bottom: 0.5rem;">
-              <span style="color:#69df5e;font-size:0.75rem;font-weight:600;">✓ XVI Member discount applied</span>
-            </div>
-            ` : `
-            <div style="text-align:center; margin-bottom: 0.5rem;">
-              <a href="/#/membership" style="color:#c9a84c;font-size:0.75rem;text-decoration:underline;">
-                👑 Join membership to save ${discountPercent}%
-              </a>
-            </div>
-            `}
           </div>
         </div>
-      </div>
 
-      <!-- Actions -->
-      <div class="wizard-actions" style="display: flex; justify-content: space-between; margin-top: 2rem;">
-        <button class="btn-wizard-back" id="step3-back" style="padding: 0.85rem 2rem; background: transparent; border: 1px solid var(--outline-variant); color: white; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-          <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_back</span>
-          Back
-        </button>
-        <button class="btn-confirm-booking" id="confirm-booking-btn" style="padding: 0.85rem 2rem; background: #1a5c1a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-          <span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span>
-          Confirm & Pay
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-// ═══════════════════════════════════════
-// STEP 4 — Booking Confirmation
-// ═══════════════════════════════════════
-function renderStep4(state) {
-  const details = state.confirmationDetails;
-  if (!details) {
-    return `
-      <div style="text-align: center; padding: 3rem;">
-        <p style="color: red;">No booking confirmation details found.</p>
-        <a href="/#/" style="color: var(--primary); text-decoration: underline;">Go back home</a>
+        <div style="display: flex; justify-content: space-between;">
+          <button class="btn-wizard-back" id="step3-back" style="background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 0.85rem 1.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+            <span class="material-symbols-outlined" style="font-size: 1.15rem;">arrow_back</span> Go Back
+          </button>
+          <button class="btn-confirm-booking" id="confirm-booking-btn" style="background: #1a5c1a; color: #fff; border: none; padding: 0.95rem 2.5rem; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; font-size: 1rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(26, 92, 26, 0.3);">
+            <span class="material-symbols-outlined" style="font-size: 1.25rem;">check_circle</span> Confirm & Pay &rarr;
+          </button>
+        </div>
       </div>
     `;
   }
 
-  return `
-    <div class="step-content" style="max-width: 500px; margin: 0 auto;">
-      <div class="step-header" style="text-align: center; margin-bottom: 2rem;">
-        <div style="width:72px; height:72px; border-radius:50%; background:rgba(76,175,80,0.15); border:2px solid #4caf50; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem;">
-          <span style="color:#4caf50; font-size:2rem; line-height:1; font-weight: bold;">✓</span>
-        </div>
-        <h2 class="wizard-title" style="color: white; margin-bottom: 0.5rem;">Booking Confirmed!</h2>
-        <p style="color: var(--on-surface-variant); font-size: 0.95rem; margin: 0;">Present this code at the location.</p>
-      </div>
+  // ─── STEP 4: BOOKING CONFIRMATION ───
+  function renderStep4() {
+    const details = state.confirmation;
+    if (!details) return '';
 
-      <!-- Prominent Booking Code Card -->
-      <div style="background:rgba(201,168,76,0.1); border:2px dashed rgba(201,168,76,0.4); border-radius:12px; padding:1.5rem; text-align:center; margin-bottom:1.5rem; position: relative;">
-        <p style="color:rgba(255,255,255,0.5); font-size:0.75rem; text-transform:uppercase; letter-spacing:2px; margin:0 0 0.5rem;">
-          Your Booking Code
-        </p>
-        <p id="booking-code-text" style="color:#c9a84c; font-size:2.25rem; font-weight:800; letter-spacing:4px; font-family:monospace; margin:0 0 1rem 0;">
-          ${details.referenceCode}
-        </p>
-        
-        <div style="display: flex; justify-content: center; gap: 1rem;">
-          <button id="copy-code-btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: white; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
-            <span class="material-symbols-outlined" style="font-size: 1rem;">content_copy</span>
-            Copy Code
+    return `
+      <div class="step-content" style="text-align: center; max-width: 500px; margin: 0 auto; padding: 1.5rem 0;">
+        <!-- Success Ring Animation -->
+        <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(76,175,80,0.12); border: 2.5px solid #4caf50; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 0 25px rgba(76,175,80,0.25);">
+          <span class="material-symbols-outlined" style="color: #4caf50; font-size: 2.75rem; font-weight: bold;">check</span>
+        </div>
+
+        <h2 style="font-family: 'Noto Serif', serif; color: #c9a84c; font-size: 2.25rem; margin: 0 0 0.5rem;">Booking Confirmed!</h2>
+        <p style="color: rgba(255,255,255,0.6); margin: 0 0 2rem; font-size: 0.95rem;">Your reservation is secured. We look forward to hosting you!</p>
+
+        <!-- Prominent Ticket Card -->
+        <div id="booking-ticket" style="background: linear-gradient(135deg, #0d1e0d, #061106); border: 2px dashed rgba(201,168,76,0.3); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; text-align: left; position: relative;">
+          
+          <div style="text-align: center; margin-bottom: 1.5rem; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 1.25rem;">
+            <p style="color: rgba(255,255,255,0.4); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2.5px; margin: 0 0 0.4rem;">Your Booking Code</p>
+            <p id="ticket-code" style="color: #c9a84c; font-size: 1.85rem; font-weight: 800; font-family: monospace; letter-spacing: 4px; margin: 0;">${details.bookingCode}</p>
+            <p style="color: rgba(76,175,80,0.85); font-size: 0.75rem; margin: 0.5rem 0 0; font-weight: 500;">✓ Present this code at the location</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+              <span style="color: rgba(255,255,255,0.45);">Table Number</span>
+              <span style="color: #fff; font-weight: 600;">${details.tableLabel}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+              <span style="color: rgba(255,255,255,0.45);">Reservation Date</span>
+              <span style="color: #fff;">${details.date}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+              <span style="color: rgba(255,255,255,0.45);">Start Time</span>
+              <span style="color: #fff;">${details.startTime}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+              <span style="color: rgba(255,255,255,0.45);">Duration Size</span>
+              <span style="color: #fff; font-weight: 600;">${details.duration}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem;">
+              <span style="color: rgba(255,255,255,0.45);">Total Paid</span>
+              <span style="color: #c9a84c; font-weight: 700;">₦${details.totalPaid.toLocaleString()}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Utility Actions (Copy & Download) -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; justify-content: center;">
+          <button id="copy-code-btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 0.7rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; transition: all 0.2s;">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">content_copy</span> Copy Code
           </button>
-          <button id="download-code-btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: white; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
-            <span class="material-symbols-outlined" style="font-size: 1rem;">download</span>
-            Download Receipt
+          <button id="download-ticket-btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 0.7rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; transition: all 0.2s;">
+            <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span> Download Ticket
+          </button>
+        </div>
+
+        <!-- Navigation Actions -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <button id="book-another-btn" style="width: 100%; background: #1a5c1a; color: #fff; border: none; padding: 0.85rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;">
+            Book Another Session
+          </button>
+          <button id="go-home-btn" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); padding: 0.85rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;">
+            Go to Homepage
           </button>
         </div>
       </div>
-
-      <!-- Detail rows -->
-      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.25rem; margin-bottom:2rem;">
-        <div style="display:grid; gap:0.75rem;">
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Table</span>
-            <span style="color:white; font-size:0.9rem; font-weight:600;">${details.tableLabel}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Date</span>
-            <span style="color:white; font-size:0.9rem;">${details.date}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Time</span>
-            <span style="color:white; font-size:0.9rem;">${details.startTime}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Duration</span>
-            <span style="color:white; font-size:0.9rem;">${details.duration}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.08);">
-            <span style="color:rgba(255,255,255,0.5); font-size:0.85rem;">Total Paid</span>
-            <span style="color:#c9a84c; font-weight:700; font-size:1.1rem;">₦${details.totalPaid.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-        <button id="book-another-wizard-btn" style="width:100%; padding:0.875rem; background:#1a5c1a; color:white; border:none; border-radius:8px; font-size:0.95rem; font-weight:600; cursor:pointer;">
-          Book Another Table
-        </button>
-        <a href="/#/" style="text-align: center; color: var(--on-surface-variant); font-size: 0.9rem; text-decoration: none; padding: 0.5rem 0;">
-          Go back to Home
-        </a>
-      </div>
-    </div>
-  `;
-}
-
-// ═══════════════════════════════════════
-// EVENT HANDLERS
-// ═══════════════════════════════════════
-function attachHandlers(state, render, updateTableAvailability) {
-  // ── Step 1 handlers ──
-  if (state.step === 1) {
-    document.getElementById('select-type-time')?.addEventListener('click', () => {
-      state.bookingType = 'time';
-      render();
-    });
-
-    document.getElementById('select-type-games')?.addEventListener('click', () => {
-      state.bookingType = 'games';
-      render();
-    });
-
-    const durSelect = document.getElementById('duration-select');
-    if (durSelect) durSelect.addEventListener('change', (e) => { state.duration = e.target.value; });
-
-    const framesSelect = document.getElementById('frames-select');
-    if (framesSelect) framesSelect.addEventListener('change', (e) => { state.frames = e.target.value; });
-
-    document.getElementById('step1-next')?.addEventListener('click', () => {
-      state.step = 2;
-      render();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    `;
   }
 
-  // ── Step 2 handlers ──
-  if (state.step === 2) {
-    const dateInput = document.getElementById('booking-date');
-    if (dateInput) {
-      dateInput.addEventListener('change', async (e) => {
-        state.date = e.target.value;
-        state.selectedTable = null; // reset selected table on date change
-        await updateTableAvailability();
-        render();
-      });
-    }
-
-    const timeSlotSelect = document.getElementById('booking-time-slot');
-    if (timeSlotSelect) {
-      timeSlotSelect.addEventListener('change', async (e) => {
-        state.timeSlot = e.target.value;
-        state.selectedTable = null; // reset selected table on time slot change
-        await updateTableAvailability();
-        render();
-      });
-    }
-
-    // Table selection clicks
-    document.querySelectorAll('.table-select-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = parseInt(card.dataset.id);
-        const t = TABLES.find(tbl => tbl.id === id);
-        if (t && t.isAvailable && t.isActive) {
-          state.selectedTable = {
-            id: t.id,
-            name: card.dataset.label,
-            hourly: parseFloat(card.dataset.hourly),
-            game: parseFloat(card.dataset.game),
-            vip: card.classList.contains('vip')
-          };
+  // ─── EVENT HANDLERS BINDINGS ───
+  function attachHandlers() {
+    // STEP 1 HANDLERS
+    if (state.step === 1) {
+      // Toggle booking type
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.bookingType = btn.dataset.type;
           render();
-        }
+        });
       });
-    });
 
-    document.getElementById('step2-back')?.addEventListener('click', () => {
-      state.step = 1;
-      render();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+      // Quantity adjustments
+      const decBtn = document.getElementById('qty-dec');
+      const incBtn = document.getElementById('qty-inc');
 
-    document.getElementById('step2-next')?.addEventListener('click', () => {
-      if (!state.selectedTable) {
-        showToast('Please select a table', 'error');
-        return;
+      if (decBtn) {
+        decBtn.addEventListener('click', () => {
+          if (state.bookingType === 'time' && state.duration > 1) {
+            state.duration--;
+          } else if (state.bookingType === 'games' && state.frames > 1) {
+            state.frames--;
+          }
+          render();
+        });
       }
-      state.step = 3;
-      render();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
 
-  // ── Step 3 handlers ──
-  if (state.step === 3) {
-    const nameInput = document.getElementById('input-name');
-    const phoneInput = document.getElementById('input-phone');
-    const emailInput = document.getElementById('input-email');
+      if (incBtn) {
+        incBtn.addEventListener('click', () => {
+          const maxVal = state.bookingType === 'time' ? 10 : 20;
+          if (state.bookingType === 'time' && state.duration < maxVal) {
+            state.duration++;
+          } else if (state.bookingType === 'games' && state.frames < maxVal) {
+            state.frames++;
+          }
+          render();
+        });
+      }
 
-    if (nameInput) nameInput.addEventListener('input', (e) => { state.fullName = e.target.value; });
-    if (phoneInput) phoneInput.addEventListener('input', (e) => { state.phone = e.target.value; });
-    if (emailInput) emailInput.addEventListener('input', (e) => { state.email = e.target.value; });
-
-    document.getElementById('step3-back')?.addEventListener('click', () => {
-      state.step = 2;
-      render();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    const confirmBtn = document.getElementById('confirm-booking-btn');
-    if (confirmBtn) {
-      confirmBtn.addEventListener('click', async () => {
-        if (!state.fullName.trim() || !state.phone.trim() || !state.email.trim()) {
-          showToast('Please fill in all your details', 'error');
-          return;
-        }
-
-        const isTime = state.bookingType === 'time';
-        const qty = parseInt(isTime ? state.duration : state.frames);
-        const baseTotal = isTime
-          ? state.selectedTable.hourly * qty
-          : state.selectedTable.game * qty;
-
-        const bookingData = {
-          tableId: state.selectedTable.id,
-          tableLabel: state.selectedTable.name,
-          reservationType: state.bookingType,
-          date: state.date,
-          startTime: formatTo24H(state.timeSlot),
-          duration: state.duration,
-          games: state.frames,
-          totalAmount: baseTotal,
-          customerName: state.fullName,
-          phone: state.phone,
-          email: state.email
-        };
-
-        const app = document.getElementById('app');
-        handleBookingPayment(bookingData, app, state, render);
-      });
+      // Next button
+      const nextBtn = document.getElementById('step1-next');
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          state.step = 2;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
     }
-  }
 
-  // ── Step 4 handlers ──
-  if (state.step === 4) {
-    const details = state.confirmationDetails;
-    
-    document.getElementById('copy-code-btn')?.addEventListener('click', () => {
-      if (details) {
-        navigator.clipboard.writeText(details.referenceCode);
-        showToast('Booking code copied to clipboard!', 'success');
+    // STEP 2 HANDLERS
+    if (state.step === 2) {
+      // Date select
+      const dateInput = document.getElementById('booking-date');
+      if (dateInput) {
+        dateInput.addEventListener('change', async (e) => {
+          state.date = e.target.value;
+          state.selectedTable = null; // Reset selection on change
+          await refreshTables();
+          render();
+        });
       }
-    });
 
-    document.getElementById('download-code-btn')?.addEventListener('click', () => {
-      if (details) {
-        const receiptText = `
+      // Time slot select
+      document.querySelectorAll('.slot-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          state.timeSlot = btn.dataset.slot;
+          state.selectedTable = null; // Reset selection on change
+          await refreshTables();
+          render();
+        });
+      });
+
+      // Table card click select
+      document.querySelectorAll('.table-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const tableId = parseInt(card.dataset.id);
+          const found = TABLES.find(t => t.id === tableId);
+          if (found && found.isAvailable && found.isActive) {
+            state.selectedTable = found;
+            render();
+          }
+        });
+      });
+
+      // Actions
+      const backBtn = document.getElementById('step2-back');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          state.step = 1;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      const nextBtn = document.getElementById('step2-next');
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (!state.selectedTable) {
+            showToast('Please select an available table.', 'error');
+            return;
+          }
+          if (!state.timeSlot) {
+            showToast('Please select a starting time slot.', 'error');
+            return;
+          }
+          state.step = 3;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+    }
+
+    // STEP 3 HANDLERS
+    if (state.step === 3) {
+      // Bind inputs
+      const nameInput = document.getElementById('input-name');
+      const phoneInput = document.getElementById('input-phone');
+      const emailInput = document.getElementById('input-email');
+
+      if (nameInput) nameInput.addEventListener('input', (e) => { state.fullName = e.target.value; });
+      if (phoneInput) phoneInput.addEventListener('input', (e) => { state.phone = e.target.value; });
+      if (emailInput) emailInput.addEventListener('input', (e) => { state.email = e.target.value; });
+
+      // Actions
+      const backBtn = document.getElementById('step3-back');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          state.step = 2;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      const confirmBtn = document.getElementById('confirm-booking-btn');
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+          if (!state.fullName.trim()) {
+            showToast('Please enter your full name.', 'error');
+            return;
+          }
+          if (!state.phone.trim()) {
+            showToast('Please enter your phone number.', 'error');
+            return;
+          }
+          if (!state.email.trim() || !state.email.includes('@')) {
+            showToast('Please enter a valid email address.', 'error');
+            return;
+          }
+
+          const qty = state.bookingType === 'time' ? state.duration : state.frames;
+          const baseTotal = state.bookingType === 'time'
+            ? state.selectedTable.hourly * qty
+            : state.selectedTable.game * qty;
+
+          const bookingData = {
+            tableId: state.selectedTable.id,
+            tableLabel: state.selectedTable.name,
+            reservationType: state.bookingType,
+            date: state.date,
+            startTime: formatTo24H(state.timeSlot),
+            duration: state.duration,
+            games: state.frames,
+            totalAmount: baseTotal,
+            customerName: state.fullName,
+            phone: state.phone,
+            email: state.email
+          };
+
+          startPaystackPayment(bookingData);
+        });
+      }
+    }
+
+    // STEP 4 HANDLERS
+    if (state.step === 4 && state.confirmation) {
+      const copyBtn = document.getElementById('copy-code-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(state.confirmation.bookingCode)
+            .then(() => {
+              showToast('Booking code copied to clipboard!', 'success');
+              copyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.1rem; color: #4caf50;">done</span> Copied!';
+              setTimeout(() => {
+                copyBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.1rem;">content_copy</span> Copy Code';
+              }, 2000);
+            })
+            .catch(() => showToast('Failed to copy code.', 'error'));
+        });
+      }
+
+      const dlBtn = document.getElementById('download-ticket-btn');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', () => {
+          const details = state.confirmation;
+          const text = `
 ========================================
-           XVI SNOOKER CLUB
-          BOOKING CONFIRMATION
+           XVI SNOOKER CLUB             
+         BOOKING CONFIRMATION           
 ========================================
-Booking Code : ${details.referenceCode}
-Table        : ${details.tableLabel}
-Date         : ${details.date}
-Time         : ${details.startTime}
-Duration     : ${details.duration}
-Total Paid   : ₦${details.totalPaid.toLocaleString()}
+Booking Code: ${details.bookingCode}
+Date:         ${details.date}
+Time:         ${details.startTime}
+Table:        ${details.tableLabel}
+Duration:     ${details.duration}
+Total Paid:   ₦${details.totalPaid.toLocaleString()}
 ========================================
 Please present this code at the location.
-Thank you for your patronage!
-`;
-        const blob = new Blob([receiptText], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `XVI-Booking-${details.referenceCode}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast('Booking receipt downloaded!', 'success');
+Thank you for booking with XVI!
+========================================
+          `;
+          const blob = new Blob([text], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `booking-${details.bookingCode}.txt`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('Ticket receipt downloaded!', 'success');
+        });
       }
-    });
 
-    document.getElementById('book-another-wizard-btn')?.addEventListener('click', () => {
-      // Reset state and go back to step 1
-      state.step = 1;
-      state.selectedTable = null;
-      state.bookingType = 'time';
-      state.duration = '1';
-      state.frames = '1';
-      state.date = new Date().toISOString().split('T')[0];
-      state.timeSlot = '';
-      state.confirmationDetails = null;
-      render();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+      const bookAnother = document.getElementById('book-another-btn');
+      if (bookAnother) {
+        bookAnother.addEventListener('click', () => {
+          state.step = 1;
+          state.selectedTable = null;
+          state.timeSlot = null;
+          state.confirmation = null;
+          render();
+        });
+      }
+
+      const goHome = document.getElementById('go-home-btn');
+      if (goHome) {
+        goHome.addEventListener('click', () => {
+          window.location.href = '/#/';
+        });
+      }
+    }
+  }
+
+  // Initial render call
+  try {
+    render();
+  } catch (err) {
+    console.error('Page render error:', err);
+    app.innerHTML = `
+      <div style="min-height:100vh; background:#061106; display:flex; align-items:center; justify-content:center; text-align:center; padding:2rem;">
+        <div>
+          <p style="color:#c9a84c; font-size:1.5rem; margin-bottom:1rem;">Something went wrong</p>
+          <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:2rem;">${err.message}</p>
+          <a href="/#/" style="color:#c9a84c; text-decoration:underline;">Go back home</a>
+        </div>
+      </div>
+    `;
   }
 }
 
