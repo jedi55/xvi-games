@@ -441,7 +441,7 @@ function renderStep2(state) {
                      data-label="${t.name}"
                      data-hourly="${t.hourly}"
                      data-game="${t.game}"
-                     style="padding: 1.25rem; border-radius: 12px; background: ${isSelected ? 'rgba(26,92,26,0.08)' : 'var(--surface)'}; border: ${isSelected ? '2px solid #1a5c1a' : '1px solid var(--outline-variant)'}; display: flex; align-items: center; justify-content: space-between; cursor: ${isAvailable ? 'pointer' : 'not-allowed'}; opacity: ${isAvailable ? '1' : '0.55'}; transition: all 0.2s;">
+                     style="padding: 1.25rem; border-radius: 12px; background: ${isSelected ? 'rgba(201,168,76,0.08)' : 'var(--surface)'}; border: ${isSelected ? '2px solid #c9a84c' : '1px solid var(--outline-variant)'}; display: flex; align-items: center; justify-content: space-between; cursor: ${isAvailable ? 'pointer' : 'not-allowed'}; opacity: ${isAvailable ? '1' : '0.55'}; transition: all 0.2s;">
                   
                   <div style="display: flex; align-items: center; gap: 1rem;">
                     <div style="width: 48px; height: 48px; border-radius: 8px; background: ${t.vip ? 'rgba(201,168,76,0.15)' : 'rgba(105,223,94,0.1)'}; display: flex; align-items: center; justify-content: center;">
@@ -465,7 +465,7 @@ function renderStep2(state) {
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                       ${statusBadge}
                       ${isAvailable ? `
-                        <input type="radio" name="table_selection" style="width: 1.25rem; height: 1.25rem; accent-color: #1a5c1a;" ${isSelected ? 'checked' : ''} />
+                        <input type="radio" name="table_selection" style="width: 1.25rem; height: 1.25rem; accent-color: #c9a84c; pointer-events: none;" ${isSelected ? 'checked' : ''} />
                       ` : ''}
                     </div>
                   </div>
@@ -483,8 +483,7 @@ function renderStep2(state) {
           Back
         </button>
         <button class="btn-wizard-next" id="step2-next" 
-                style="padding: 0.85rem 2rem; background: #1a5c1a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; ${(!state.selectedTable || !state.timeSlot) ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
-                ${(!state.selectedTable || !state.timeSlot) ? 'disabled' : ''}>
+                style="padding: 0.85rem 2rem; background: #1a5c1a; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; ${(!state.selectedTable || !state.timeSlot) ? 'opacity: 0.55;' : ''}">
           Next
           <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_forward</span>
         </button>
@@ -790,8 +789,12 @@ function attachHandlers(state, render, updateTableAvailability) {
     });
 
     document.getElementById('step2-next')?.addEventListener('click', () => {
+      if (!state.timeSlot) {
+        showToast('Please select a starting time slot to check table availability', 'error');
+        return;
+      }
       if (!state.selectedTable) {
-        showToast('Please select a table', 'error');
+        showToast('Please select a table to continue', 'error');
         return;
       }
       state.step = 3;
