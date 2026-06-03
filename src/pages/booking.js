@@ -98,7 +98,10 @@ async function handleBookingPayment(bookingData, app, state, render) {
           .select()
           .single();
 
-        const refCode = booking?.reference_code || transaction.reference.slice(-8).toUpperCase();
+        // Generate unique code in format XVI-[YEAR]-[5CHARS]
+        const year = new Date().getFullYear();
+        const rand5 = Math.random().toString(36).substring(2, 7).toUpperCase();
+        const refCode = booking?.reference_code || `XVI-${year}-${rand5}`;
 
         // 4. Send confirmation email (non-blocking)
         sendBookingConfirmationEmail({
@@ -116,39 +119,44 @@ async function handleBookingPayment(bookingData, app, state, render) {
           discount: discountAmount
         }).catch(e => console.warn('Email non-fatal:', e));
 
-        // 5. Update state and transition to Step 4
-        state.confirmationDetails = {
-          referenceCode: refCode,
-          tableLabel: bookingData.tableLabel,
-          date: bookingData.date,
-          startTime: bookingData.startTime,
-          duration: bookingData.reservationType === 'time'
-            ? bookingData.duration + ' hour(s)'
-            : bookingData.games + ' game(s)',
-          totalPaid: finalAmount,
-          isMember: isMember,
-          discount: discountAmount
-        };
-        state.step = 4;
-        render();
+        // 5. Save confirmation to sessionStorage for /#/confirmed page
+        sessionStorage.setItem('confirmedReservation', JSON.stringify({
+          refCode:     refCode,
+          tableName:   bookingData.tableLabel,
+          date:        bookingData.date,
+          timeSlot:    state.timeSlot || bookingData.startTime,
+          bookingType: bookingData.reservationType,
+          duration:    bookingData.duration,
+          frames:      bookingData.games,
+          totalAmount: finalAmount,
+          fullName:    bookingData.customerName,
+          phone:       bookingData.phone,
+          email:       bookingData.email || session.user.email
+        }));
+
+        // Navigate to the dedicated confirmation page
+        window.location.hash = '#/confirmed';
 
       } catch (err) {
         console.error('Booking save error:', err);
-        // Still transition to confirmation since payment succeeded
-        state.confirmationDetails = {
-          referenceCode: transaction.reference.slice(-8).toUpperCase(),
-          tableLabel: bookingData.tableLabel,
-          date: bookingData.date,
-          startTime: bookingData.startTime,
-          duration: bookingData.reservationType === 'time'
-            ? bookingData.duration + ' hour(s)'
-            : bookingData.games + ' game(s)',
-          totalPaid: finalAmount,
-          isMember: isMember,
-          discount: discountAmount
-        };
-        state.step = 4;
-        render();
+        // Payment succeeded — still navigate to confirmation with fallback code
+        const year = new Date().getFullYear();
+        const rand5 = Math.random().toString(36).substring(2, 7).toUpperCase();
+        const fallbackCode = `XVI-${year}-${rand5}`;
+        sessionStorage.setItem('confirmedReservation', JSON.stringify({
+          refCode:     fallbackCode,
+          tableName:   bookingData.tableLabel,
+          date:        bookingData.date,
+          timeSlot:    state.timeSlot || bookingData.startTime,
+          bookingType: bookingData.reservationType,
+          duration:    bookingData.duration,
+          frames:      bookingData.games,
+          totalAmount: finalAmount,
+          fullName:    bookingData.customerName,
+          phone:       bookingData.phone,
+          email:       bookingData.email || session.user.email
+        }));
+        window.location.hash = '#/confirmed';
       }
     },
 
@@ -441,6 +449,8 @@ function renderStep2(state) {
                      data-label="${t.name}"
                      data-hourly="${t.hourly}"
                      data-game="${t.game}"
+                     data-desc="${t.desc}"
+                     data-available="${isAvailable ? '1' : '0'}"
                      style="padding: 1.25rem; border-radius: 12px; background: ${isSelected ? 'rgba(201,168,76,0.08)' : 'var(--surface)'}; border: ${isSelected ? '2px solid #c9a84c' : '1px solid var(--outline-variant)'}; display: flex; align-items: center; justify-content: space-between; cursor: ${isAvailable ? 'pointer' : 'not-allowed'}; opacity: ${isAvailable ? '1' : '0.55'}; transition: all 0.2s;">
                   
                   <div style="display: flex; align-items: center; gap: 1rem;">
@@ -465,7 +475,7 @@ function renderStep2(state) {
                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                       ${statusBadge}
                       ${isAvailable ? `
-                        <input type="radio" name="table_selection" style="width: 1.25rem; height: 1.25rem; accent-color: #c9a84c; pointer-events: none;" ${isSelected ? 'checked' : ''} />
+                        <input type="radio" class="table-radio" name="table_selection" style="width: 1.25rem; height: 1.25rem; accent-color: #c9a84c; pointer-events: none; cursor: pointer;" ${isSelected ? 'checked' : ''} />
                       ` : ''}
                     </div>
                   </div>
@@ -566,7 +576,7 @@ function renderStep3(state) {
             <div class="osc-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div class="osc-row" style="display: flex; justify-content: space-between;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">Table</span>
-                <span class="osc-value" style="color: white; font-weight: 600;">${table.name}</span>
+                <span class="osc-value" style="color: white; font-weight: 600;">${table.name}${table.desc ? ' · ' + table.desc : ''}</span>
               </div>
               <div class="osc-row" style="display: flex; justify-content: space-between;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">Date</span>
@@ -764,21 +774,39 @@ function attachHandlers(state, render, updateTableAvailability) {
       });
     }
 
-    // Table selection clicks
+    // Table selection clicks — DOM-first approach (no re-render needed for visual toggle)
     document.querySelectorAll('.table-select-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = parseInt(card.dataset.id);
-        const t = TABLES.find(tbl => tbl.id === id);
-        if (t && t.isAvailable && t.isActive) {
-          state.selectedTable = {
-            id: t.id,
-            name: card.dataset.label,
-            hourly: parseFloat(card.dataset.hourly),
-            game: parseFloat(card.dataset.game),
-            vip: card.classList.contains('vip')
-          };
-          render();
-        }
+      card.addEventListener('click', (e) => {
+        // Guard: only available tables are selectable
+        if (card.dataset.available !== '1') return;
+
+        // Deselect all cards visually
+        document.querySelectorAll('.table-select-card').forEach(c => {
+          c.style.border = '1px solid var(--outline-variant)';
+          c.style.background = 'var(--surface)';
+          const radio = c.querySelector('.table-radio');
+          if (radio) radio.checked = false;
+        });
+
+        // Select this card visually
+        card.style.border = '2px solid #c9a84c';
+        card.style.background = 'rgba(201,168,76,0.08)';
+        const radio = card.querySelector('.table-radio');
+        if (radio) radio.checked = true;
+
+        // Update state — include desc so Step 3 can show table number
+        state.selectedTable = {
+          id: parseInt(card.dataset.id),
+          name: card.dataset.label,
+          desc: card.dataset.desc || '',
+          hourly: parseFloat(card.dataset.hourly),
+          game: parseFloat(card.dataset.game),
+          vip: card.classList.contains('vip')
+        };
+
+        // Enable Next button visually
+        const nextBtn = document.getElementById('step2-next');
+        if (nextBtn) nextBtn.style.opacity = '1';
       });
     });
 
