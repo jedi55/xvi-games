@@ -1288,6 +1288,49 @@
   margin-bottom: 1rem;
 }
 
+/* ── Booking Type Cards ── */
+.booking-type-card {
+  padding: 2rem;
+  border-radius: 12px;
+  background: var(--surface-container-low);
+  border: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.booking-type-card .material-symbols-outlined {
+  font-size: 3rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.booking-type-card:hover {
+  border-color: var(--primary);
+  background: var(--surface-container);
+}
+
+.booking-type-card.active {
+  background: rgba(105, 223, 94, 0.05);
+  border-color: var(--primary);
+  color: var(--on-surface);
+}
+
+[data-theme="light"] .booking-type-card.active {
+  background: rgba(26, 92, 26, 0.05);
+}
+
+.booking-type-card.active .material-symbols-outlined {
+  color: var(--primary);
+}
+
 /* ── Table Selection Cards ── */
 .table-select-grid {
   display: grid;
