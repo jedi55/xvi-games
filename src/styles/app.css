@@ -1288,49 +1288,6 @@
   margin-bottom: 1rem;
 }
 
-/* ── Booking Type Cards ── */
-.booking-type-card {
-  padding: 2rem;
-  border-radius: 12px;
-  background: var(--surface-container-low);
-  border: 2px solid var(--outline-variant);
-  color: var(--on-surface);
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.booking-type-card .material-symbols-outlined {
-  font-size: 3rem;
-  color: var(--on-surface-variant);
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.booking-type-card:hover {
-  border-color: var(--primary);
-  background: var(--surface-container);
-}
-
-.booking-type-card.active {
-  background: rgba(105, 223, 94, 0.05);
-  border-color: var(--primary);
-  color: var(--on-surface);
-}
-
-[data-theme="light"] .booking-type-card.active {
-  background: rgba(26, 92, 26, 0.05);
-}
-
-.booking-type-card.active .material-symbols-outlined {
-  color: var(--primary);
-}
-
 /* ── Table Selection Cards ── */
 .table-select-grid {
   display: grid;
@@ -2867,4 +2824,88 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════════════
+   BOOKING WIZARD — LIGHT THEME TEXT FIXES
+   Catches any remaining hardcoded `color: white`
+   inline styles that CSS vars cannot reach.
+═══════════════════════════════════════════════ */
+[data-theme="light"] .booking-wizard {
+  color: var(--on-surface);
+}
+
+/* Booking type cards */
+[data-theme="light"] .booking-type-card,
+[data-theme="light"] .booking-type-card span {
+  color: var(--on-surface) !important;
+}
+
+[data-theme="light"] .booking-type-card .material-symbols-outlined {
+  color: var(--on-surface-variant) !important;
+}
+
+[data-theme="light"] .booking-type-card.active .material-symbols-outlined {
+  color: var(--primary) !important;
+}
+
+/* Selects and date inputs inside the wizard */
+[data-theme="light"] .booking-wizard select,
+[data-theme="light"] .booking-wizard input[type="date"] {
+  color: var(--on-surface) !important;
+  background: var(--surface-container-lowest) !important;
+  border-color: var(--outline-variant) !important;
+}
+
+/* Dropdown options (rendered by OS, need explicit colors) */
+[data-theme="light"] .booking-wizard select option {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+/* Table name headings in selection cards */
+[data-theme="light"] .booking-table-card h4 {
+  color: var(--on-surface) !important;
+}
+
+/* Wizard subtitles / section headings */
+[data-theme="light"] .booking-wizard .wizard-subtitle {
+  color: var(--on-surface) !important;
+}
+
+/* Order summary values */
+[data-theme="light"] .osc-value {
+  color: var(--on-surface) !important;
+}
+
+[data-theme="light"] .osc-total-label {
+  color: var(--on-surface) !important;
+}
+
+/* Back buttons (transparent bg — white text would be invisible) */
+[data-theme="light"] .btn-wizard-back {
+  color: var(--on-surface) !important;
+  border-color: var(--outline-variant) !important;
+}
+
+/* Calendar picker icon — invert so it's visible on light bg */
+[data-theme="light"] .wizard-date-input::-webkit-calendar-picker-indicator,
+[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+/* Wizard input fields */
+[data-theme="light"] .wizard-input {
+  background: var(--surface-container-lowest) !important;
+  color: var(--on-surface) !important;
+  border-color: var(--outline-variant) !important;
+}
+
+/* Table card background in light mode */
+[data-theme="light"] .booking-table-card {
+  background: var(--surface-container-lowest) !important;
+}
+
+[data-theme="light"] .booking-table-card.selected {
+  background: rgba(201, 168, 76, 0.08) !important;
 }

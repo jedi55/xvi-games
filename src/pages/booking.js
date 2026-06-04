@@ -337,16 +337,16 @@ function renderStep1(state) {
       <div class="booking-type-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
         <button class="booking-type-card ${state.bookingType === 'time' ? 'active' : ''}" 
                 id="select-type-time"
-                style="padding: 2rem; border-radius: 12px; background: ${state.bookingType === 'time' ? 'rgba(105,223,94,0.05)' : 'var(--surface-container-low)'}; border: 2px solid ${state.bookingType === 'time' ? 'var(--primary)' : 'var(--outline-variant)'}; color: white; cursor: pointer; text-align: center; transition: all 0.2s;">
-          <span class="material-symbols-outlined" style="font-size: 3rem; color: ${state.bookingType === 'time' ? 'var(--primary)' : 'inherit'}; margin-bottom: 0.5rem; display: block;">schedule</span>
+                style="padding: 2rem; border-radius: 12px; background: ${state.bookingType === 'time' ? 'rgba(105,223,94,0.05)' : 'var(--surface-container-low)'}; border: 2px solid ${state.bookingType === 'time' ? 'var(--primary)' : 'var(--outline-variant)'}; color: var(--on-surface); cursor: pointer; text-align: center; transition: all 0.2s;">
+          <span class="material-symbols-outlined" style="font-size: 3rem; color: ${state.bookingType === 'time' ? 'var(--primary)' : 'var(--on-surface-variant)'}; margin-bottom: 0.5rem; display: block;">schedule</span>
           <span style="font-weight: 700; font-size: 1.1rem; display: block;">Book by Time</span>
           <span style="font-size: 0.8rem; opacity: 0.7; display: block; margin-top: 0.25rem;">Reserve tables for a set duration</span>
         </button>
 
         <button class="booking-type-card ${state.bookingType === 'games' ? 'active' : ''}" 
                 id="select-type-games"
-                style="padding: 2rem; border-radius: 12px; background: ${state.bookingType === 'games' ? 'rgba(105,223,94,0.05)' : 'var(--surface-container-low)'}; border: 2px solid ${state.bookingType === 'games' ? 'var(--primary)' : 'var(--outline-variant)'}; color: white; cursor: pointer; text-align: center; transition: all 0.2s;">
-          <span class="material-symbols-outlined" style="font-size: 3rem; color: ${state.bookingType === 'games' ? 'var(--primary)' : 'inherit'}; margin-bottom: 0.5rem; display: block;">sports_score</span>
+                style="padding: 2rem; border-radius: 12px; background: ${state.bookingType === 'games' ? 'rgba(105,223,94,0.05)' : 'var(--surface-container-low)'}; border: 2px solid ${state.bookingType === 'games' ? 'var(--primary)' : 'var(--outline-variant)'}; color: var(--on-surface); cursor: pointer; text-align: center; transition: all 0.2s;">
+          <span class="material-symbols-outlined" style="font-size: 3rem; color: ${state.bookingType === 'games' ? 'var(--primary)' : 'var(--on-surface-variant)'}; margin-bottom: 0.5rem; display: block;">sports_score</span>
           <span style="font-weight: 700; font-size: 1.1rem; display: block;">Book by Games</span>
           <span style="font-size: 0.8rem; opacity: 0.7; display: block; margin-top: 0.25rem;">Reserve tables for a number of frames</span>
         </button>
@@ -355,14 +355,14 @@ function renderStep1(state) {
       ${state.bookingType === 'time' ? `
         <div class="duration-selector-wrapper" style="margin-bottom: 2rem;">
           <label class="wizard-field-label" style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--gold);">Select Duration</label>
-          <select id="duration-select" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;">
+          <select id="duration-select" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: var(--on-surface);">
             ${Array.from({length: 10}, (_, i) => i + 1).map(h => `<option value="${h}" ${state.duration == h ? 'selected' : ''}>${h} Hour${h > 1 ? 's' : ''}</option>`).join('')}
           </select>
         </div>
       ` : `
         <div class="frames-selector-wrapper" style="margin-bottom: 2rem;">
           <label class="wizard-field-label" style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--gold);">Select Number of Frames</label>
-          <select id="frames-select" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;">
+          <select id="frames-select" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: var(--on-surface);">
             ${Array.from({length: 20}, (_, i) => i + 1).map(f => `<option value="${f}" ${state.frames == f ? 'selected' : ''}>${f} Frame${f > 1 ? 's' : ''}</option>`).join('')}
           </select>
         </div>
@@ -398,13 +398,13 @@ function renderStep2(state) {
           <input type="date" id="booking-date" class="wizard-date-input"
             value="${state.date}"
             min="${new Date().toISOString().split('T')[0]}" 
-            style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;" />
+            style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: var(--on-surface);" />
         </div>
 
         <!-- Time Slot Picker -->
         <div class="time-section">
           <label class="wizard-field-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--gold);">Select Start Time</label>
-          <select id="booking-time-slot" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: white;">
+          <select id="booking-time-slot" class="wizard-select" style="width: 100%; padding: 0.85rem; background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 8px; color: var(--on-surface);">
             <option value="" ${!state.timeSlot ? 'selected' : ''}>-- Choose a Time Slot --</option>
             ${TIME_SLOTS.map(slot => {
               const unavailable = UNAVAILABLE_SLOTS.includes(slot);
@@ -416,7 +416,7 @@ function renderStep2(state) {
 
       <!-- Table Selection Section -->
       <div class="table-selection-section" style="margin-bottom: 2rem;">
-        <h3 class="wizard-subtitle" style="margin-bottom: 1rem; color: white;">Available Tables</h3>
+        <h3 class="wizard-subtitle" style="margin-bottom: 1rem; color: var(--on-surface);">Available Tables</h3>
         
         ${!state.timeSlot ? `
           <div style="text-align: center; padding: 3rem; background: var(--surface-container-low); border-radius: 12px; border: 1px dashed var(--outline-variant);">
@@ -458,7 +458,7 @@ function renderStep2(state) {
                       <span class="material-symbols-outlined" style="color: ${t.vip ? '#c9a84c' : '#69df5e'};">${t.vip ? 'stars' : 'sports'}</span>
                     </div>
                     <div>
-                      <h4 style="margin: 0; font-size: 1.1rem; color: white; display: flex; align-items: center; gap: 0.5rem;">
+                      <h4 style="margin: 0; font-size: 1.1rem; color: var(--on-surface); display: flex; align-items: center; gap: 0.5rem;">
                         ${t.name}
                         ${t.vip ? '<span style="font-size: 0.65rem; background: #c9a84c; color: #000; padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 700;">VIP</span>' : ''}
                       </h4>
@@ -488,7 +488,7 @@ function renderStep2(state) {
 
       <!-- Actions -->
       <div class="wizard-actions" style="display: flex; justify-content: space-between; margin-top: 2rem;">
-        <button class="btn-wizard-back" id="step2-back" style="padding: 0.85rem 2rem; background: transparent; border: 1px solid var(--outline-variant); color: white; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+        <button class="btn-wizard-back" id="step2-back" style="padding: 0.85rem 2rem; background: transparent; border: 1px solid var(--outline-variant); color: var(--on-surface); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
           <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_back</span>
           Back
         </button>
@@ -551,7 +551,7 @@ function renderStep3(state) {
       <div class="step3-layout" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2.5rem; margin-bottom: 2rem;">
         <!-- Left: Form -->
         <div class="details-form">
-          <h3 class="wizard-subtitle" style="margin-bottom: 1.5rem; color: white;">Your Details</h3>
+          <h3 class="wizard-subtitle" style="margin-bottom: 1.5rem; color: var(--on-surface);">Your Details</h3>
           <div class="wizard-input-group">
             <label>Full Name</label>
             <input type="text" id="input-name" class="wizard-input" placeholder="Enter your full name" value="${state.fullName}" />
@@ -576,24 +576,24 @@ function renderStep3(state) {
             <div class="osc-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
               <div class="osc-row" style="display: flex; justify-content: space-between;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">Table</span>
-                <span class="osc-value" style="color: white; font-weight: 600;">${table.name}${table.desc ? ' · ' + table.desc : ''}</span>
+                <span class="osc-value" style="color: var(--on-surface); font-weight: 600;">${table.name}${table.desc ? ' · ' + table.desc : ''}</span>
               </div>
               <div class="osc-row" style="display: flex; justify-content: space-between;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">Date</span>
-                <span class="osc-value" style="color: white;">${dateFormatted}</span>
+                <span class="osc-value" style="color: var(--on-surface);">${dateFormatted}</span>
               </div>
               <div class="osc-row" style="display: flex; justify-content: space-between;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">Time</span>
-                <span class="osc-value" style="color: white;">${state.timeSlot}</span>
+                <span class="osc-value" style="color: var(--on-surface);">${state.timeSlot}</span>
               </div>
               <div class="osc-row" style="display: flex; justify-content: space-between;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">${isTime ? 'Duration' : 'Games'}</span>
-                <span class="osc-value" style="color: white;">${unitLabel}</span>
+                <span class="osc-value" style="color: var(--on-surface);">${unitLabel}</span>
               </div>
               ${estimatedDurationHtml}
               <div class="osc-row" style="display: flex; justify-content: space-between; border-top: 1px dashed var(--outline-variant); padding-top: 0.75rem; margin-top: 0.5rem;">
                 <span class="osc-label" style="color: var(--on-surface-variant);">Base Price</span>
-                <span class="osc-value" style="color: white; ${isMember ? 'text-decoration:line-through;opacity:0.6;' : ''}">${formatCurrency(basePrice)}</span>
+                <span class="osc-value" style="color: var(--on-surface); ${isMember ? 'text-decoration:line-through;opacity:0.6;' : ''}">${formatCurrency(basePrice)}</span>
               </div>
               ${isMember ? `
               <div class="osc-row" style="display: flex; justify-content: space-between; background:rgba(105,223,94,0.07); border-radius:6px; padding:0.4rem 0.5rem; margin-top: 0.25rem;">
@@ -606,7 +606,7 @@ function renderStep3(state) {
           
           <div style="margin-top: 1.5rem; border-top: 1px solid var(--outline-variant); padding-top: 1rem;">
             <div class="osc-total" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <span class="osc-total-label" style="color: white; font-weight: 700; font-size: 1.1rem;">Total</span>
+              <span class="osc-total-label" style="color: var(--on-surface); font-weight: 700; font-size: 1.1rem;">Total</span>
               <span class="osc-total-value" style="color: #c9a84c; font-weight: 800; font-size: 1.4rem;">${formatCurrency(totalPrice)}</span>
             </div>
             
@@ -627,7 +627,7 @@ function renderStep3(state) {
 
       <!-- Actions -->
       <div class="wizard-actions" style="display: flex; justify-content: space-between; margin-top: 2rem;">
-        <button class="btn-wizard-back" id="step3-back" style="padding: 0.85rem 2rem; background: transparent; border: 1px solid var(--outline-variant); color: white; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+        <button class="btn-wizard-back" id="step3-back" style="padding: 0.85rem 2rem; background: transparent; border: 1px solid var(--outline-variant); color: var(--on-surface); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
           <span class="material-symbols-outlined" style="font-size:1.125rem;">arrow_back</span>
           Back
         </button>
