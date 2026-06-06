@@ -33,6 +33,20 @@ async function handleBookingPayment(bookingData, app, state, render) {
     return;
   }
 
+  // Debug: verify the key is loaded (first 12 chars shown for security)
+  const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+  console.log('[Paystack] Key loaded:', paystackKey ? paystackKey.substring(0, 12) + '...' : 'MISSING — check .env');
+
+  if (!paystackKey || paystackKey.trim() === '') {
+    alert('Payment configuration error: Paystack key is missing. Please contact support.');
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    if (confirmBtn) {
+      confirmBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span> Confirm & Pay';
+      confirmBtn.disabled = false;
+    }
+    return;
+  }
+
   const confirmBtn = document.getElementById('confirm-booking-btn');
   if (confirmBtn) {
     confirmBtn.innerHTML = '<span class="material-symbols-outlined spin" style="animation: spin 1s linear infinite;">refresh</span> Processing...';
@@ -40,7 +54,7 @@ async function handleBookingPayment(bookingData, app, state, render) {
   }
 
   const handler = PaystackPop.setup({
-    key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+    key: paystackKey,
     email: session.user.email,
     amount: finalAmount * 100,
     currency: 'NGN',
