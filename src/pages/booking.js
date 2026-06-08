@@ -28,14 +28,20 @@ async function handleBookingPayment(bookingData, app, state, render) {
     ? Math.round(baseAmount * (discountPercent / 100)) : 0;
   const finalAmount = baseAmount - discountAmount;
 
-  if (typeof PaystackPop === 'undefined') {
+  // Use window.PaystackPop to guarantee global scope access
+  if (typeof window.PaystackPop === 'undefined') {
     alert('Payment system not loaded. Please refresh and try again.');
+    const confirmBtn = document.getElementById('confirm-booking-btn');
+    if (confirmBtn) {
+      confirmBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span> Confirm & Pay';
+      confirmBtn.disabled = false;
+    }
     return;
   }
 
   // Debug: verify the key is loaded (first 12 chars shown for security)
   const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-  console.log('[Paystack] Key loaded:', paystackKey ? paystackKey.substring(0, 12) + '...' : 'MISSING — check .env');
+  console.log('[Paystack] Key:', paystackKey ? paystackKey.substring(0, 12) + '...' : 'MISSING — check .env');
 
   if (!paystackKey || paystackKey.trim() === '') {
     alert('Payment configuration error: Paystack key is missing. Please contact support.');
@@ -47,30 +53,42 @@ async function handleBookingPayment(bookingData, app, state, render) {
     return;
   }
 
+  // Show loading state on button
   const confirmBtn = document.getElementById('confirm-booking-btn');
   if (confirmBtn) {
     confirmBtn.innerHTML = '<span class="material-symbols-outlined spin" style="animation: spin 1s linear infinite;">refresh</span> Processing...';
     confirmBtn.disabled = true;
   }
 
-  const handler = PaystackPop.setup({
+  // Helper to reset button back to active state
+  function resetConfirmBtn() {
+    const btn = document.getElementById('confirm-booking-btn');
+    if (btn) {
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span> Confirm & Pay';
+      btn.disabled = false;
+    }
+  }
+
+  const handler = window.PaystackPop.setup({
     key: paystackKey,
     email: session.user.email,
-    amount: finalAmount * 100,
+    amount: finalAmount * 100,   // Paystack expects kobo (naira × 100)
     currency: 'NGN',
-    ref: 'XVI_BKG_' + Date.now(),
+    ref: 'XVI-' + Date.now(),
     label: bookingData.customerName || session.user.email,
     metadata: {
       custom_fields: [
-        { display_name: 'Table', variable_name: 'table', value: bookingData.tableLabel },
-        { display_name: 'Booking Date', variable_name: 'date', value: bookingData.date },
-        { display_name: 'Start Time', variable_name: 'start_time', value: bookingData.startTime },
-        { display_name: 'Booking Type', variable_name: 'type', value: bookingData.reservationType },
+        { display_name: 'Table',           variable_name: 'table',           value: bookingData.tableLabel },
+        { display_name: 'Booking Date',    variable_name: 'date',            value: bookingData.date },
+        { display_name: 'Start Time',      variable_name: 'start_time',      value: bookingData.startTime },
+        { display_name: 'Booking Type',    variable_name: 'type',            value: bookingData.reservationType },
         { display_name: 'Member Discount', variable_name: 'member_discount', value: isMember ? discountPercent + '%' : 'None' }
       ]
     },
 
-    onSuccess: async (transaction) => {
+    // ── Paystack v1 success callback (NOT onSuccess) ──
+    callback: async (response) => {
+      console.log('[Paystack] Payment success:', response);
       try {
         // 1. Create customer record
         const { data: customer } = await supabase
@@ -106,18 +124,18 @@ async function handleBookingPayment(bookingData, app, state, render) {
             duration_hours: bookingData.reservationType === 'time' ? parseInt(bookingData.duration) : null,
             total_amount: finalAmount * 100,
             payment_status: 'paid',
-            paystack_reference: transaction.reference,
+            paystack_reference: response.reference,
             status: 'confirmed'
           })
           .select()
           .single();
 
-        // Generate unique code in format XVI-[YEAR]-[5CHARS]
+        // 4. Generate booking code XVI-[YEAR]-[5CHARS]
         const year = new Date().getFullYear();
         const rand5 = Math.random().toString(36).substring(2, 7).toUpperCase();
         const refCode = booking?.reference_code || `XVI-${year}-${rand5}`;
 
-        // 4. Send confirmation email (non-blocking)
+        // 5. Send confirmation email (non-blocking)
         sendBookingConfirmationEmail({
           to: bookingData.email || session.user.email,
           customerName: bookingData.customerName,
@@ -133,7 +151,7 @@ async function handleBookingPayment(bookingData, app, state, render) {
           discount: discountAmount
         }).catch(e => console.warn('Email non-fatal:', e));
 
-        // 5. Save confirmation to sessionStorage for /#/confirmed page
+        // 6. Persist to sessionStorage for /confirmed page
         sessionStorage.setItem('confirmedReservation', JSON.stringify({
           refCode:     refCode,
           tableName:   bookingData.tableLabel,
@@ -148,17 +166,16 @@ async function handleBookingPayment(bookingData, app, state, render) {
           email:       bookingData.email || session.user.email
         }));
 
-        // Navigate to the dedicated confirmation page
-        window.location.hash = '#/confirmed';
+        // 7. Navigate to confirmation page
+        window.location.href = 'https://xvigames.com/#/confirmed';
 
       } catch (err) {
-        console.error('Booking save error:', err);
-        // Payment succeeded — still navigate to confirmation with fallback code
+        console.error('[Paystack] Booking save error (payment already succeeded):', err);
+        // Payment went through — still send user to confirmation with a fallback code
         const year = new Date().getFullYear();
         const rand5 = Math.random().toString(36).substring(2, 7).toUpperCase();
-        const fallbackCode = `XVI-${year}-${rand5}`;
         sessionStorage.setItem('confirmedReservation', JSON.stringify({
-          refCode:     fallbackCode,
+          refCode:     `XVI-${year}-${rand5}`,
           tableName:   bookingData.tableLabel,
           date:        bookingData.date,
           timeSlot:    state.timeSlot || bookingData.startTime,
@@ -170,15 +187,14 @@ async function handleBookingPayment(bookingData, app, state, render) {
           phone:       bookingData.phone,
           email:       bookingData.email || session.user.email
         }));
-        window.location.hash = '#/confirmed';
+        window.location.href = 'https://xvigames.com/#/confirmed';
       }
     },
 
-    onCancel: () => {
-      if (confirmBtn) {
-        confirmBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1.125rem;">check_circle</span> Confirm & Pay';
-        confirmBtn.disabled = false;
-      }
+    // ── Paystack v1 close callback (NOT onCancel) ──
+    onClose: () => {
+      console.log('[Paystack] Payment modal closed by user');
+      resetConfirmBtn();
     }
   });
 
