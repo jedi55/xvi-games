@@ -1,5 +1,6 @@
 import { renderHeader, renderFooter } from '../components/layout.js';
 import { getSession } from '../lib/auth.js';
+import { initiatePaystackPayment } from '../lib/payment.js';
 
 // Fetch membership prices from app_settings (falls back to defaults)
 async function getMembershipSettings() {
@@ -219,8 +220,8 @@ async function handlePlanPayment(plan, amount, app, btnElement, originalText, pr
     session.user.user_metadata?.name ||
     session.user.email.split('@')[0]
 
-  // Check if Paystack is loaded
-  if (typeof PaystackPop === 'undefined') {
+  // Check if Paystack is loaded (payment.js also guards this, but fail fast)
+  if (typeof window.PaystackPop === 'undefined') {
     alert('Payment system loading. Please try again.')
     if (btnElement) {
       btnElement.innerHTML = originalText
@@ -229,32 +230,17 @@ async function handlePlanPayment(plan, amount, app, btnElement, originalText, pr
     return
   }
 
-  const handler = PaystackPop.setup({
-    key: publicKey,
-    email: userEmail,
-    amount: amount * 100,
-    currency: 'NGN',
-    ref: 'XVI_MEM_' + plan.toUpperCase() + '_' + Date.now(),
-    label: userName,
-    metadata: {
-      custom_fields: [
-        {
-          display_name: 'Membership Plan',
-          variable_name: 'plan',
-          value: plan
-        },
-        {
-          display_name: 'Customer Name',
-          variable_name: 'name',
-          value: userName
-        },
-        {
-          display_name: 'User ID',
-          variable_name: 'user_id',
-          value: session.user.id
-        }
-      ]
-    },
+  initiatePaystackPayment({
+    email:  userEmail,
+    amount: amount,
+    ref:    'XVI-MEM-' + plan.toUpperCase() + '-' + Date.now(),
+    label:  userName,
+    metadata: [
+      { display_name: 'Membership Plan', variable_name: 'plan',    value: plan },
+      { display_name: 'Customer Name',   variable_name: 'name',    value: userName },
+      { display_name: 'User ID',         variable_name: 'user_id', value: session.user.id }
+    ],
+
     onSuccess: async (transaction) => {
       try {
         // Calculate expiry date
@@ -267,6 +253,7 @@ async function handlePlanPayment(plan, amount, app, btnElement, originalText, pr
         }
 
         // Update profiles table in Supabase
+        const { supabase } = await import('/src/lib/supabase.js')
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -278,9 +265,7 @@ async function handlePlanPayment(plan, amount, app, btnElement, originalText, pr
           })
           .eq('id', session.user.id)
 
-        if (error) {
-          console.error('Profile update error:', error)
-        }
+        if (error) console.error('Profile update error:', error)
 
         // Save to localStorage — discount applied immediately to next booking
         localStorage.setItem('xvi_member', 'true')
@@ -290,29 +275,27 @@ async function handlePlanPayment(plan, amount, app, btnElement, originalText, pr
         localStorage.removeItem('membershipDismissed')
         localStorage.removeItem('pendingMembership')
 
-        // Show popup
+        // Show success popup
         showMembershipSuccessPopup(plan, transaction.reference, prices.discount, prices.freeGames)
       } catch (err) {
         console.error('Membership activation error:', err)
         alert(
-          'Payment successful! Reference: ' + 
-          transaction.reference + 
+          'Payment successful! Reference: ' +
+          transaction.reference +
           '\nYour membership will be activated shortly.'
         )
         window.location.href = '/#/'
       }
     },
 
-    onCancel: () => {
-      console.log('Payment cancelled')
+    onClose: () => {
+      console.log('[Paystack] Membership payment closed')
       if (btnElement) {
         btnElement.innerHTML = originalText
         btnElement.disabled = false
       }
     }
   })
-
-  handler.openIframe()
 }
 
 
