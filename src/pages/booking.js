@@ -39,9 +39,13 @@ async function handleBookingPayment(bookingData, app, state, render) {
     return;
   }
 
-  // Debug: verify the key is loaded (first 12 chars shown for security)
-  const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-  console.log('[Paystack] Key:', paystackKey ? paystackKey.substring(0, 12) + '...' : 'MISSING — check .env');
+  // Load key from env var (set in hosting platform dashboard for live site).
+  // Falls back to the hardcoded public key if the env var is missing at build time.
+  // NOTE: Paystack PUBLIC keys (pk_test/pk_live) are safe to expose client-side.
+  const FALLBACK_KEY = 'pk_test_ea2a396e49ad8875ff1d77445a41a6b4cca54d60';
+  const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || FALLBACK_KEY;
+  console.log('[Paystack] Key source:', import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ? 'env var' : 'fallback hardcoded');
+  console.log('[Paystack] Key prefix:', paystackKey.substring(0, 12) + '...');
 
   if (!paystackKey || paystackKey.trim() === '') {
     alert('Payment configuration error: Paystack key is missing. Please contact support.');
