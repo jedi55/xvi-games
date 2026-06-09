@@ -35,6 +35,9 @@ export function initiatePaystackPayment({
   onSuccess,
   onClose
 }) {
+  // ── DIAGNOSTIC: shows exact key on every payment attempt ──
+  alert('Key being used: ' + PAYSTACK_PUBLIC_KEY);
+
   // Log key source for debugging (first 12 chars only — rest is masked)
   console.log(
     '[Paystack] Key source:',
