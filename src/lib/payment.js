@@ -12,7 +12,7 @@
 // the hosting platform doesn't pass the env var at build time.
 const PAYSTACK_PUBLIC_KEY =
   import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
-  'pk_test_ea2a396e49ad8875ff1d77445a41a6b4cca54d60';
+  'pk_test_ea2a396e49ad8875ff1d77445a41a6b4cca54d6';
 
 /**
  * Initiate a Paystack inline payment.
